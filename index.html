@@ -561,50 +561,134 @@ function processFile(file) {
     try {
       const wb = XLSX.read(e.target.result, { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
-      if (!data.length) { toast('El archivo está vacío', 'er'); return; }
-      loadData(data, file.name);
-    } catch(err) { toast('Error leyendo el archivo', 'er'); }
+      // Read as raw array to handle offset headers
+      const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      if (!raw.length) { toast('El archivo está vacío', 'er'); return; }
+      loadData(raw, file.name);
+    } catch(err) { toast('Error leyendo el archivo: ' + err.message, 'er'); }
   };
   reader.readAsArrayBuffer(file);
 }
 
-function loadData(data, fname) {
-  const all = data.map((row, i) => {
-    const n = {};
-    Object.keys(row).forEach(k => { n[k.toUpperCase().trim()] = String(row[k]).trim(); });
-    return {
-      id: i,
-      cliente:   n['CLIENTE']   || activeClient,
-      categoria: n['CATEGORIA'] || n['CATEGORY'] || '',
-      gancho:    n['GANCHO']    || '',
-      copy:      n['COPY']      || '',
-      cta:       n['CTA']       || '',
-      layout:    (n['LAYOUT']   || 'bold').toLowerCase(),
-      desarrollo:n['DESARROLLO']|| '',
-      status:    (n['STATUS']   || 'PENDIENTE').toUpperCase().trim(),
-      bgUrl: null, bgLoaded: false, selected: false, generated: false,
-    };
+// Column name aliases — maps any variant to canonical name
+const COL_ALIASES = {
+  // GANCHO
+  'GANCHO': 'gancho',
+  // COPY variants
+  'COPY': 'copy', 'COPY COMPLETO': 'copy', 'COPY PRINCIPAL': 'copy',
+  'TEXTO': 'copy', 'DESCRIPCION': 'copy', 'DESCRIPCIÓN': 'copy',
+  'BODY': 'copy', 'CONTENIDO': 'copy',
+  // CTA
+  'CTA': 'cta', 'LLAMADA A LA ACCION': 'cta', 'LLAMADA A LA ACCIÓN': 'cta',
+  'CALL TO ACTION': 'cta',
+  // CATEGORIA
+  'CATEGORIA': 'categoria', 'CATEGORÍA': 'categoria', 'CATEGORY': 'categoria',
+  'TIPO': 'categoria', 'TEMA': 'categoria', 'TEMA / TÍTULO': 'categoria',
+  'TEMA / TITULO': 'categoria', 'TIPO DE CONTENIDO': 'categoria',
+  'FORMATO': 'formato',
+  // CLIENTE
+  'CLIENTE': 'cliente', 'CLIENT': 'cliente',
+  // LAYOUT
+  'LAYOUT': 'layout', 'DISEÑO': 'layout', 'FORMATO VISUAL': 'layout',
+  // STATUS
+  'STATUS': 'status', 'ESTADO': 'status', 'ESTATUS': 'status',
+  // DESARROLLO
+  'DESARROLLO': 'desarrollo', 'PROYECTO': 'desarrollo', 'DEVELOPMENT': 'desarrollo',
+  // PLATFORM
+  'PLATAFORMA': 'plataforma', 'PLATFORM': 'plataforma', 'RED': 'plataforma',
+  'RED SOCIAL': 'plataforma',
+  // DATE
+  'FECHA': 'fecha', 'DIA': 'dia', 'DÍA': 'dia',
+};
+
+function findHeaderRow(raw) {
+  // Find the row that has GANCHO column (that's the real header)
+  for (let i = 0; i < Math.min(10, raw.length); i++) {
+    const row = raw[i];
+    for (const cell of row) {
+      if (cell && String(cell).toUpperCase().trim() === 'GANCHO') return i;
+    }
+  }
+  return 0; // fallback to first row
+}
+
+function loadData(raw, fname) {
+  // 1. Find header row
+  const headerRowIdx = findHeaderRow(raw);
+  const headerRow = raw[headerRowIdx];
+
+  // 2. Build column index map
+  const colMap = {}; // canonical name → column index
+  headerRow.forEach((cell, idx) => {
+    const key = String(cell || '').toUpperCase().trim();
+    const canonical = COL_ALIASES[key];
+    if (canonical && !(canonical in colMap)) colMap[canonical] = idx;
   });
 
-  rows = all.filter(r => r.status === 'PENDIENTE');
-  const listo   = all.filter(r => r.status === 'LISTO').length;
-  const arch    = all.filter(r => r.status === 'ARCHIVADO').length;
+  // 3. Parse data rows (skip header and any rows without GANCHO)
+  const ganchoIdx = colMap['gancho'];
+  if (ganchoIdx === undefined) {
+    toast('No se encontró columna GANCHO en el archivo', 'er'); return;
+  }
 
+  const get = (row, field) => {
+    const idx = colMap[field];
+    return idx !== undefined ? String(row[idx] || '').trim() : '';
+  };
+
+  let id = 0;
+  const all = [];
+  for (let i = headerRowIdx + 1; i < raw.length; i++) {
+    const row = raw[i];
+    const gancho = get(row, 'gancho');
+    // Skip empty rows and section-header rows (no gancho content)
+    if (!gancho || gancho.length < 3) continue;
+    // Skip rows that look like section dividers (all caps short text, starts with emoji)
+    const firstCell = String(row[0] || '').trim();
+    if (firstCell.startsWith('📅') || firstCell.startsWith('  ')) continue;
+
+    const status = get(row, 'status').toUpperCase() || 'PENDIENTE';
+    const plataforma = get(row, 'plataforma') || get(row, 'formato') || '';
+
+    all.push({
+      id: id++,
+      cliente:    get(row, 'cliente')    || activeClient,
+      categoria:  get(row, 'categoria')  || get(row, 'formato') || '',
+      gancho,
+      copy:       get(row, 'copy'),
+      cta:        get(row, 'cta'),
+      layout:     (get(row, 'layout')    || 'bold').toLowerCase(),
+      desarrollo: get(row, 'desarrollo') || '',
+      plataforma,
+      fecha:      get(row, 'fecha')      || '',
+      status,
+      bgUrl: null, bgLoaded: false, selected: false, generated: false,
+    });
+  }
+
+  if (!all.length) { toast('No se encontraron filas con contenido', 'er'); return; }
+
+  // 4. Filter: if any row has STATUS, use it; otherwise treat all as PENDIENTE
+  const hasStatus = all.some(r => r.status !== 'PENDIENTE');
+  rows = hasStatus ? all.filter(r => r.status === 'PENDIENTE') : all;
+  const listo = all.filter(r => r.status === 'LISTO').length;
+  const arch  = all.filter(r => r.status === 'ARCHIVADO').length;
+
+  // 5. Update UI
   document.getElementById('file-loaded').classList.add('show');
   document.getElementById('upload-zone').style.display = 'none';
   document.getElementById('fl-name').textContent = fname;
-  document.getElementById('fl-meta').textContent = `${all.length} filas · ${rows.length} pendientes`;
+  document.getElementById('fl-meta').textContent = `${all.length} slides · ${rows.length} a generar`;
   document.getElementById('stats-sec').style.display = 'block';
   document.getElementById('st-total').textContent = all.length;
   document.getElementById('st-pend').textContent = rows.length;
   document.getElementById('st-listo').textContent = listo;
   document.getElementById('st-arch').textContent = arch;
   document.getElementById('badge-pending').style.display = 'inline';
-  document.getElementById('badge-pending').textContent = `${rows.length} pendientes`;
+  document.getElementById('badge-pending').textContent = `${rows.length} slides`;
   document.getElementById('btn-gen').disabled = false;
   renderGrid();
-  toast(`✓ ${rows.length} slides pendientes cargados`);
+  toast(`✓ ${rows.length} slides cargados (${headerRowIdx > 0 ? 'headers en fila ' + (headerRowIdx+1) : 'formato estándar'})`);
 }
 
 function clearFile() {
