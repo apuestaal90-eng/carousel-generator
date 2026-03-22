@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Carousel Generator · ARIM MKT</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0A1520;--bg2:#0F1D2D;--bg3:#162333;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --text:#E8EFF6;--text2:rgba(255,255,255,.5);--text3:rgba(255,255,255,.25);
+  --accent:#2DBD8F;--accent2:#1A9A71;
+  --warn:#F59E0B;--err:#EF4444;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
+
+/* ── CLIENT SELECTOR SPLASH ──────────────────────────────── */
+#splash{position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.splash-logo{font-family:'Outfit',sans-serif;font-weight:900;font-size:13px;letter-spacing:2px;color:var(--accent);margin-bottom:8px}
+.splash-title{font-family:'Outfit',sans-serif;font-weight:800;font-size:28px;text-align:center;margin-bottom:6px}
+.splash-sub{font-size:14px;color:var(--text2);text-align:center;margin-bottom:40px}
+.client-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:560px}
+@media(max-width:500px){.client-grid{grid-template-columns:repeat(2,1fr)}}
+.client-card{background:var(--bg2);border:2px solid var(--border);border-radius:16px;padding:20px 16px;cursor:pointer;transition:all .2s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.client-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.4)}
+.client-card.selected{transform:translateY(-3px)}
+.cc-logo{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-weight:900;font-size:16px;color:#fff;letter-spacing:-1px}
+.cc-name{font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.cc-desc{font-size:10px;color:var(--text3);font-weight:500;line-height:1.4}
+.splash-key-section{margin-top:32px;width:100%;max-width:420px}
+.splash-key-label{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;text-align:center}
+.splash-key-row{display:flex;gap:8px}
+.splash-key-input{flex:1;background:rgba(255,255,255,.05);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;outline:none;transition:border-color .15s}
+.splash-key-input:focus{border-color:var(--accent)}
+.splash-key-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:6px;line-height:1.5}
+.splash-key-hint a{color:var(--accent);text-decoration:none}
+.splash-cta{margin-top:28px;padding:14px 40px;background:var(--accent);border:none;border-radius:12px;color:#fff;font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;opacity:.4;pointer-events:none}
+.splash-cta.ready{opacity:1;pointer-events:all}
+.splash-cta.ready:hover{background:var(--accent2);transform:translateY(-2px)}
+.key-ok-badge{display:none;font-size:11px;color:var(--accent);font-weight:600;text-align:center;margin-top:6px}
+.key-ok-badge.show{display:block}
+
+/* ── TOPBAR ───────────────────────────────────────────────── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:11px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-weight:900;font-size:12px;color:#fff}
+.app-name{font-family:'Outfit',sans-serif;font-weight:700;font-size:14px}
+.app-client{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:4px}
+.topbar-right{margin-left:auto;display:flex;gap:7px;align-items:center}
+.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.3px;border:1px solid}
+.badge-green{background:rgba(45,189,143,.1);border-color:rgba(45,189,143,.25);color:var(--accent)}
+.badge-warn{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.25);color:var(--warn)}
+.btn-change{padding:5px 12px;background:transparent;border:1.5px solid var(--border2);border-radius:8px;color:var(--text2);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+.btn-change:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+.app-body{display:flex;flex:1;min-height:0}
+
+/* ── SIDEBAR ──────────────────────────────────────────────── */
+.sidebar{width:280px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;max-height:calc(100vh - 53px)}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+.sb-sec{padding:16px;border-bottom:1px solid var(--border)}
+.sb-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+
+/* Upload */
+.upload-zone{border:2px dashed var(--border2);border-radius:12px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.02)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(45,189,143,.05)}
+.upload-zone input{display:none}
+.uz-icon{font-size:28px;margin-bottom:8px}
+.uz-text{font-size:12px;color:var(--text2);line-height:1.5}
+.uz-text strong{color:var(--accent)}
+.uz-hint{font-size:10px;color:var(--text3);margin-top:4px}
+.file-loaded{display:none;align-items:center;gap:8px;padding:10px 12px;background:rgba(45,189,143,.07);border:1px solid rgba(45,189,143,.2);border-radius:10px}
+.file-loaded.show{display:flex}
+.fl-info{flex:1;min-width:0}
+.fl-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl-meta{font-size:10px;color:var(--accent);margin-top:1px}
+.btn-clear{background:transparent;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 5px}
+.btn-clear:hover{color:var(--err)}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--bg3);border-radius:8px;padding:8px 10px;text-align:center}
+.stat-n{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800}
+.stat-n.g{color:var(--accent)}
+.stat-l{font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.5px;margin-top:1px}
+
+/* Progress */
+.prog-wrap{background:var(--bg3);border-radius:20px;height:5px;overflow:hidden;margin:6px 0}
+.prog-fill{height:100%;background:var(--accent);border-radius:20px;transition:width .4s ease;width:0}
+.prog-text{font-size:10px;color:var(--text3);text-align:center}
+
+/* Buttons */
+.btn-p{width:100%;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-p:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-p:disabled{background:rgba(45,189,143,.25);cursor:not-allowed;transform:none}
+.btn-s{width:100%;padding:9px;background:rgba(255,255,255,.04);border:1.5px solid var(--border2);border-radius:10px;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-s:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.btn-s:disabled{opacity:.35;cursor:not-allowed}
+.btn-group{display:flex;flex-direction:column;gap:7px}
+
+/* ── MAIN ─────────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.toolbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:8px}
+.tb-lbl{font-size:11px;color:var(--text2)}
+.btn-selall{padding:4px 10px;border:1.5px solid var(--border2);border-radius:7px;background:transparent;color:var(--text2);font-size:10px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-selall:hover{border-color:var(--accent);color:var(--accent)}
+.view-toggle{display:flex;gap:3px;margin-left:auto}
+.vbtn{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.vbtn.active{border-color:var(--accent);color:var(--accent);background:rgba(45,189,143,.08)}
+
+/* Empty */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px;text-align:center}
+.empty-icon{font-size:48px;opacity:.25}
+.empty-t{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text2)}
+.empty-s{font-size:12px;color:var(--text3);max-width:300px;line-height:1.6}
+
+/* Grid */
+.slide-grid{flex:1;overflow-y:auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;align-content:start}
+.slide-grid.lv{grid-template-columns:1fr;gap:8px}
+.slide-grid::-webkit-scrollbar{width:3px}
+.slide-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+
+/* Card */
+.scard{background:var(--bg3);border-radius:12px;overflow:hidden;border:2px solid transparent;transition:all .2s;cursor:pointer;position:relative}
+.scard:hover{border-color:rgba(45,189,143,.35);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.scard.sel{border-color:var(--accent)}
+.scard.lv{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px}
+.card-chk{position:absolute;top:7px;left:7px;z-index:5;width:20px;height:20px;border-radius:5px;border:2px solid rgba(255,255,255,.25);background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:all .15s}
+.scard.sel .card-chk{background:var(--accent);border-color:var(--accent)}
+.card-chk::after{content:'✓';font-size:11px;font-weight:700;color:#fff;display:none}
+.scard.sel .card-chk::after{display:block}
+.card-thumb{width:100%;aspect-ratio:1;position:relative;overflow:hidden}
+.scard.lv .card-thumb{width:56px;height:56px;flex-shrink:0;border-radius:8px}
+.ct-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.ct-ov{position:absolute;inset:0;display:flex;flex-direction:column;padding:8px}
+.ct-tag{font-family:'Outfit',sans-serif;font-size:8px;font-weight:700;letter-spacing:.7px;padding:2px 7px;border-radius:10px;align-self:flex-start;margin-bottom:auto}
+.ct-gancho{font-family:'Outfit',sans-serif;font-size:9px;font-weight:800;line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ct-brand{font-size:8px;font-weight:700;margin-top:4px;opacity:.65}
+.card-acts{position:absolute;bottom:0;left:0;right:0;padding:6px;background:linear-gradient(transparent,rgba(0,0,0,.75));display:none;gap:5px}
+.scard:hover .card-acts{display:flex}
+.ca-btn{flex:1;padding:4px;border-radius:5px;border:none;font-family:'Outfit',sans-serif;font-size:9px;font-weight:700;cursor:pointer}
+.ca-pre{background:rgba(255,255,255,.15);color:#fff}
+.ca-dl{background:var(--accent);color:#fff}
+.card-body{padding:8px 10px 10px}
+.scard.lv .card-body{flex:1;padding:0}
+.cb-client{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.cb-gancho{font-size:11px;font-weight:600;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+.cb-meta{display:flex;gap:4px;flex-wrap:wrap}
+.meta-t{font-size:9px;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.05);color:var(--text3)}
+.card-spin{position:absolute;inset:0;background:rgba(10,21,32,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:4}
+.spin{width:20px;height:20px;border:2px solid rgba(45,189,143,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-lbl{font-size:9px;color:var(--accent);font-weight:600}
+
+/* ── MODAL ────────────────────────────────────────────────── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);z-index:600;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-ov.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;display:flex;overflow:hidden;max-width:860px;width:100%;max-height:92vh}
+@media(max-width:700px){.modal{flex-direction:column;overflow-y:auto}}
+.modal-left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--bg);gap:12px;min-width:0}
+.modal-slide-wrap{border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);width:100%;max-width:420px;aspect-ratio:1}
+#modal-canvas{width:100%;height:100%}
+.modal-nav{display:flex;gap:8px;align-items:center}
+.mnav-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border2);background:rgba(255,255,255,.03);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mnav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.modal-counter{font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--text2);min-width:44px;text-align:center}
+.modal-right{width:240px;flex-shrink:0;padding:20px;border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+@media(max-width:700px){.modal-right{width:100%;border-left:none;border-top:1px solid var(--border)}}
+.modal-close{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:7px;border:1.5px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:10}
+.modal-close:hover{color:var(--err);border-color:var(--err)}
+.mf-lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.m-input,.m-textarea,.m-select{width:100%;background:rgba(255,255,255,.04);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;padding:6px 9px;outline:none;transition:border-color .15s;resize:none}
+.m-input:focus,.m-textarea:focus,.m-select:focus{border-color:var(--accent)}
+.m-textarea{min-height:60px;line-height:1.5}
+.m-select option{background:#1a2a3a}
+.layout-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:3px}
+.lm{padding:4px;border:1.5px solid var(--border2);border-radius:6px;text-align:center;cursor:pointer;font-size:9px;font-weight:700;color:var(--text3);transition:all .15s}
+.lm:hover,.lm.sel{border-color:var(--accent);color:var(--accent);background:rgba(45,189,143,.1)}
+.btn-regen{width:100%;padding:7px;background:rgba(45,189,143,.1);border:1.5px solid rgba(45,189,143,.2);border-radius:8px;color:var(--accent);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+.btn-regen:hover{background:rgba(45,189,143,.18)}
+.btn-modal-dl{width:100%;padding:10px;background:var(--accent);border:none;border-radius:9px;color:#fff;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;margin-top:auto;transition:all .15s}
+.btn-modal-dl:hover{background:var(--accent2)}
+.modal-divider{height:1px;background:var(--border);margin:2px 0}
+
+/* ── TOAST ────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;padding:10px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:1000;display:flex;align-items:center;gap:7px;max-width:280px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:rgba(45,189,143,.35)}
+.toast.er{border-color:rgba(239,68,68,.35)}
+.tdot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.toast.er .tdot{background:var(--err)}
+
+/* ── MOBILE ADJUSTMENTS ────────────────────────────────────── */
+@media(max-width:600px){
+  .app-body{flex-direction:column}
+  .sidebar{width:100%;max-height:none;border-right:none;border-bottom:1px solid var(--border)}
+  .slide-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ─────────────── SPLASH ─────────────── -->
+<div id="splash">
+  <div class="splash-logo">ARIM MKT</div>
+  <div class="splash-title">Carousel Generator</div>
+  <div class="splash-sub">Selecciona el cliente para comenzar</div>
+
+  <div class="client-grid" id="client-grid">
+    <!-- rendered by JS -->
+  </div>
+
+  <div class="splash-key-section">
+    <div class="splash-key-label">Unsplash API Key (fondos automáticos)</div>
+    <div class="splash-key-row">
+      <input type="password" class="splash-key-input" id="splash-key" placeholder="Pega tu Access Key...">
+      <button class="btn-p" style="width:auto;padding:10px 16px" onclick="saveSplashKey()">Guardar</button>
+    </div>
+    <div class="key-ok-badge" id="key-ok-badge">✓ Clave guardada — fondos automáticos activos</div>
+    <div class="splash-key-hint">
+      Gratis en <a href="https://unsplash.com/developers" target="_blank">unsplash.com/developers</a> →
+      New Application → copia el <em>Access Key</em><br>
+      (Opcional — sin clave se usa el color del brand kit)
+    </div>
+  </div>
+
+  <button class="splash-cta" id="splash-cta" onclick="launchApp()">
+    Entrar →
+  </button>
+</div>
+
+<!-- ─────────────── APP ─────────────── -->
+<div id="app-root" style="display:none;flex:1;flex-direction:column">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo" id="topbar-logo">AM</div>
+    <div class="app-name">Carousel Generator</div>
+    <div class="app-client badge badge-green" id="topbar-client">—</div>
+    <div class="topbar-right">
+      <span class="badge badge-warn" id="badge-pending" style="display:none">0 pendientes</span>
+      <span class="badge badge-green" id="badge-key-top" style="display:none">Unsplash ✓</span>
+      <button class="btn-change" onclick="backToSplash()">↩ Cambiar cliente</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- UPLOAD -->
+      <div class="sb-sec">
+        <div class="sb-lbl">1. Carga tu parrilla</div>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(this)">
+          <div class="uz-icon">📊</div>
+          <div class="uz-text"><strong>Arrastra el Excel aquí</strong><br>o toca para seleccionar</div>
+          <div class="uz-hint">Exporta tu Google Sheet como .xlsx</div>
+        </div>
+        <div class="file-loaded" id="file-loaded">
+          <span style="font-size:20px">📗</span>
+          <div class="fl-info">
+            <div class="fl-name" id="fl-name">archivo.xlsx</div>
+            <div class="fl-meta" id="fl-meta">—</div>
+          </div>
+          <button class="btn-clear" onclick="clearFile()">✕</button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="sb-sec" id="stats-sec" style="display:none">
+        <div class="sb-lbl">Resumen</div>
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-n" id="st-total">0</div><div class="stat-l">TOTAL</div></div>
+          <div class="stat"><div class="stat-n g" id="st-pend">0</div><div class="stat-l">PENDIENTES</div></div>
+          <div class="stat"><div class="stat-n" id="st-listo">0</div><div class="stat-l">LISTOS</div></div>
+          <div class="stat"><div class="stat-n" id="st-arch">0</div><div class="stat-l">ARCHIVADOS</div></div>
+        </div>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="sb-sec" id="prog-sec" style="display:none">
+        <div class="sb-lbl">Progreso</div>
+        <div class="prog-wrap"><div class="prog-fill" id="prog-fill"></div></div>
+        <div class="prog-text" id="prog-text">—</div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="sb-sec">
+        <div class="sb-lbl">2. Generar y exportar</div>
+        <div class="btn-group">
+          <button class="btn-p" id="btn-gen" onclick="generateAll()" disabled>
+            <span>⚡</span> Generar todos los slides
+          </button>
+          <button class="btn-s" id="btn-zip" onclick="downloadZip()" disabled>
+            <span>📦</span> Descargar ZIP completo
+          </button>
+          <button class="btn-s" id="btn-sel" onclick="downloadSelected()" disabled>
+            <span>⬇</span> Descargar seleccionados
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /sidebar -->
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="toolbar" id="toolbar" style="display:none">
+        <span class="tb-lbl" id="tb-lbl">0 slides</span>
+        <button class="btn-selall" onclick="toggleAll()">Sel. todo</button>
+        <div class="view-toggle">
+          <button class="vbtn active" id="vg" onclick="setView('g')" title="Cuadrícula">⊞</button>
+          <button class="vbtn" id="vl" onclick="setView('l')" title="Lista">☰</button>
+        </div>
+      </div>
+
+      <div class="empty" id="empty">
+        <div class="empty-icon">📋</div>
+        <div class="empty-t">Carga tu parrilla de contenido</div>
+        <div class="empty-s">Exporta el Google Sheet como .xlsx y arrástralo al panel izquierdo. La app leerá solo las filas STATUS = <strong style="color:var(--warn)">PENDIENTE</strong>.</div>
+      </div>
+
+      <div class="slide-grid" id="grid" style="display:none"></div>
+    </div>
+
+  </div>
+</div><!-- /app-root -->
+
+<!-- PREVIEW MODAL -->
+<div class="modal-ov" id="modal">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <div class="modal">
+    <div class="modal-left">
+      <div class="modal-slide-wrap">
+        <div id="modal-canvas"></div>
+      </div>
+      <div class="modal-nav">
+        <button class="mnav-btn" onclick="mNav(-1)">‹</button>
+        <span class="modal-counter" id="mctr">1/1</span>
+        <button class="mnav-btn" onclick="mNav(1)">›</button>
+      </div>
+    </div>
+    <div class="modal-right">
+      <div><div class="mf-lbl">Gancho</div>
+        <textarea class="m-textarea" id="e-gancho" rows="3" oninput="applyEdit()"></textarea></div>
+      <div><div class="mf-lbl">Copy</div>
+        <textarea class="m-textarea" id="e-copy" rows="4" oninput="applyEdit()"></textarea></div>
+      <div><div class="mf-lbl">CTA</div>
+        <input class="m-input" id="e-cta" oninput="applyEdit()"></div>
+      <div><div class="mf-lbl">Categoría</div>
+        <input class="m-input" id="e-cat" oninput="applyEdit()"></div>
+      <div class="modal-divider"></div>
+      <div><div class="mf-lbl">Layout</div>
+        <div class="layout-mini">
+          <div class="lm sel" data-l="bold" onclick="setMLayout('bold',this)">BOLD</div>
+          <div class="lm" data-l="split" onclick="setMLayout('split',this)">SPLIT</div>
+          <div class="lm" data-l="center" onclick="setMLayout('center',this)">CENTER</div>
+        </div>
+      </div>
+      <button class="btn-regen" onclick="regenBg()">🔄 Nuevo fondo</button>
+      <button class="btn-modal-dl" onclick="dlModal()">⬇ Descargar slide</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><div class="tdot"></div><span id="tmsg"></span></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// BRAND KITS — 6 CLIENTES
+// ══════════════════════════════════════════════════════════════
+const KITS = {
+  'Gana Salud': {
+    siglas:'GS', color:'#2DBD8F', bg:'#FFFFFF', dark:false,
+    desc:'Fisioterapia',
+    cats:{
+      'Dolor y Tratamiento':'physiotherapy treatment back pain clinic',
+      'Tips de Salud':'healthy lifestyle wellness person',
+      'Testimonio':'happy patient recovery smiling',
+      'Ejercicio y Prevención':'exercise stretching fitness yoga',
+      'Educación':'anatomy spine medical illustration',
+      'Columna y Postura':'posture spine back office ergonomic',
+      'Señales de Alerta':'pain discomfort medical check',
+      '¿Sabías que...?':'science health research laboratory',
+      'default':'physiotherapy clinic professional',
+    }
+  },
+  'Ávila Herrera': {
+    siglas:'AH', color:'#C9A84C', bg:'#0D2B45', dark:true,
+    desc:'Bienes raíces premium',
+    cats:{
+      'Proyecto Destacado':'luxury real estate architecture building modern',
+      'Amenidades':'luxury amenities pool rooftop apartment',
+      'Ubicación':'urban city aerial view architecture',
+      'Inversión':'real estate investment property value',
+      'Testimonios':'happy couple keys new home',
+      'Preventa':'construction building development site',
+      'default':'luxury apartment architecture interior',
+    }
+  },
+  'WTE': {
+    siglas:'WTE', color:'#1A6FBB', bg:'#0A1628', dark:true,
+    desc:'Lujo y viajes',
+    cats:{
+      'Destino':'luxury travel destination europe landmark',
+      'Experiencia':'travel adventure experience nature breathtaking',
+      'Lujo':'luxury hotel fine dining interior elegant',
+      'Oferta':'travel deal vacation tropical beach',
+      'Consejos de Viaje':'travel tips packing airport journey',
+      'default':'luxury travel landscape scenic',
+    }
+  },
+  'Daniel Ávila': {
+    siglas:'DA', color:'#D4A84B', bg:'#111111', dark:true,
+    desc:'Marca personal — inversión',
+    cats:{
+      'Inversión':'real estate investment financial growth',
+      'Mentalidad':'entrepreneur mindset success office',
+      'Resultados':'business success growth achievement',
+      'Personal':'entrepreneur lifestyle confident professional',
+      'default':'entrepreneur business professional portrait',
+    }
+  },
+  'NEO RE': {
+    siglas:'NR', color:'#00C8E0', bg:'#080E1A', dark:true,
+    desc:'Consultoría preventa',
+    cats:{
+      'Metodología en Campo':'real estate sales team professional meeting',
+      'Verdades del Mercado':'real estate market analysis data chart',
+      'Tecnología Aplicada':'technology data digital innovation analysis',
+      'Fe y Propósito':'sunrise motivation purpose leadership calm',
+      'Liderazgo Comercial':'sales team leadership business meeting',
+      'default':'real estate architecture city skyline',
+    }
+  },
+  'AU Studio': {
+    siglas:'AU', color:'#FF6B35', bg:'#1A1A1A', dark:true,
+    desc:'Producción creativa',
+    cats:{
+      'Producción':'film production studio camera professional',
+      'Behind the Scenes':'behind scenes creative studio team',
+      'Proyecto':'creative project design studio workspace',
+      'Servicios':'creative agency team collaboration work',
+      'default':'creative studio film production camera',
+    }
+  },
+};
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let activeClient = null;
+let rows = [];
+let view = 'g';
+let modalIdx = 0;
+let unsplashKey = '';
+let generating = false;
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+window.onload = () => {
+  buildSplash();
+  const k = localStorage.getItem('arim_unsplash_key');
+  if (k) { unsplashKey = k; document.getElementById('splash-key').value = k; showKeyOk(); }
+  setupDrop();
+};
+
+function buildSplash() {
+  const grid = document.getElementById('client-grid');
+  grid.innerHTML = '';
+  Object.entries(KITS).forEach(([name, kit]) => {
+    const el = document.createElement('div');
+    el.className = 'client-card';
+    el.style.borderColor = 'transparent';
+    el.dataset.name = name;
+    el.innerHTML = `
+      <div class="cc-logo" style="background:${kit.color}">${kit.siglas}</div>
+      <div class="cc-name">${name}</div>
+      <div class="cc-desc">${kit.desc}</div>`;
+    el.onclick = () => selectClient(name, el);
+    grid.appendChild(el);
+  });
+}
+
+function selectClient(name, el) {
+  activeClient = name;
+  document.querySelectorAll('.client-card').forEach(c => {
+    const k = KITS[c.dataset.name];
+    c.style.borderColor = 'transparent';
+    c.style.boxShadow = 'none';
+    c.classList.remove('selected');
+  });
+  const kit = KITS[name];
+  el.style.borderColor = kit.color;
+  el.style.boxShadow = `0 8px 24px ${kit.color}33`;
+  el.classList.add('selected');
+  document.getElementById('splash-cta').classList.add('ready');
+}
+
+function saveSplashKey() {
+  const v = document.getElementById('splash-key').value.trim();
+  if (!v) return;
+  unsplashKey = v;
+  localStorage.setItem('arim_unsplash_key', v);
+  showKeyOk();
+  toast('✓ Clave Unsplash guardada');
+}
+
+function showKeyOk() {
+  document.getElementById('key-ok-badge').classList.add('show');
+  document.getElementById('badge-key-top').style.display = 'inline';
+}
+
+function launchApp() {
+  if (!activeClient) return;
+  const kit = KITS[activeClient];
+  document.getElementById('splash').style.display = 'none';
+  const root = document.getElementById('app-root');
+  root.style.display = 'flex';
+  // Apply brand to topbar
+  document.getElementById('topbar-logo').style.background = kit.color;
+  document.getElementById('topbar-logo').textContent = kit.siglas;
+  document.getElementById('topbar-client').textContent = activeClient;
+  document.getElementById('topbar-client').style.color = kit.color;
+  document.getElementById('topbar-client').style.borderColor = `${kit.color}40`;
+  document.getElementById('topbar-client').style.background = `${kit.color}12`;
+  if (unsplashKey) document.getElementById('badge-key-top').style.display = 'inline';
+}
+
+function backToSplash() {
+  clearFile();
+  document.getElementById('app-root').style.display = 'none';
+  document.getElementById('splash').style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════════════════════
+// FILE HANDLING
+// ══════════════════════════════════════════════════════════════
+function setupDrop() {
+  const zone = document.getElementById('upload-zone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); const f = e.dataTransfer.files[0]; if (f) processFile(f); });
+}
+
+function handleFile(input) { if (input.files[0]) processFile(input.files[0]); }
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!data.length) { toast('El archivo está vacío', 'er'); return; }
+      loadData(data, file.name);
+    } catch(err) { toast('Error leyendo el archivo', 'er'); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function loadData(data, fname) {
+  const all = data.map((row, i) => {
+    const n = {};
+    Object.keys(row).forEach(k => { n[k.toUpperCase().trim()] = String(row[k]).trim(); });
+    return {
+      id: i,
+      cliente:   n['CLIENTE']   || activeClient,
+      categoria: n['CATEGORIA'] || n['CATEGORY'] || '',
+      gancho:    n['GANCHO']    || '',
+      copy:      n['COPY']      || '',
+      cta:       n['CTA']       || '',
+      layout:    (n['LAYOUT']   || 'bold').toLowerCase(),
+      desarrollo:n['DESARROLLO']|| '',
+      status:    (n['STATUS']   || 'PENDIENTE').toUpperCase().trim(),
+      bgUrl: null, bgLoaded: false, selected: false, generated: false,
+    };
+  });
+
+  rows = all.filter(r => r.status === 'PENDIENTE');
+  const listo   = all.filter(r => r.status === 'LISTO').length;
+  const arch    = all.filter(r => r.status === 'ARCHIVADO').length;
+
+  document.getElementById('file-loaded').classList.add('show');
+  document.getElementById('upload-zone').style.display = 'none';
+  document.getElementById('fl-name').textContent = fname;
+  document.getElementById('fl-meta').textContent = `${all.length} filas · ${rows.length} pendientes`;
+  document.getElementById('stats-sec').style.display = 'block';
+  document.getElementById('st-total').textContent = all.length;
+  document.getElementById('st-pend').textContent = rows.length;
+  document.getElementById('st-listo').textContent = listo;
+  document.getElementById('st-arch').textContent = arch;
+  document.getElementById('badge-pending').style.display = 'inline';
+  document.getElementById('badge-pending').textContent = `${rows.length} pendientes`;
+  document.getElementById('btn-gen').disabled = false;
+  renderGrid();
+  toast(`✓ ${rows.length} slides pendientes cargados`);
+}
+
+function clearFile() {
+  rows = [];
+  document.getElementById('file-loaded').classList.remove('show');
+  document.getElementById('upload-zone').style.display = 'block';
+  document.getElementById('stats-sec').style.display = 'none';
+  document.getElementById('grid').style.display = 'none';
+  document.getElementById('empty').style.display = 'flex';
+  document.getElementById('toolbar').style.display = 'none';
+  document.getElementById('btn-gen').disabled = true;
+  document.getElementById('btn-zip').disabled = true;
+  document.getElementById('btn-sel').disabled = true;
+  document.getElementById('badge-pending').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+// GRID
+// ══════════════════════════════════════════════════════════════
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  if (!rows.length) { grid.style.display = 'none'; empty.style.display = 'flex'; document.getElementById('toolbar').style.display = 'none'; return; }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.className = 'slide-grid' + (view === 'l' ? ' lv' : '');
+  document.getElementById('toolbar').style.display = 'flex';
+  updateTblbl();
+  grid.innerHTML = '';
+
+  rows.forEach((row, i) => {
+    const kit = KITS[row.cliente] || KITS[activeClient] || Object.values(KITS)[0];
+    const isDark = kit.dark;
+    const textC = isDark ? '#fff' : '#0D2B45';
+    const bgStyle = row.bgUrl
+      ? `background-image:url('${row.bgUrl}');background-size:cover;background-position:center`
+      : `background:${kit.bg}`;
+
+    const card = document.createElement('div');
+    card.className = 'scard' + (row.selected ? ' sel' : '') + (view === 'l' ? ' lv' : '');
+    card.id = `c-${row.id}`;
+    card.onclick = e => { if (!e.target.closest('.card-acts')) toggleSel(row.id); };
+
+    card.innerHTML = `
+      <div class="card-chk"></div>
+      <div class="card-thumb">
+        <div class="ct-bg" style="${bgStyle}"></div>
+        <div class="ct-ov" style="background:linear-gradient(to bottom,${kit.bg}88,${kit.bg}DD)">
+          <div class="ct-tag" style="background:${kit.color}22;color:${kit.color}">${(row.categoria||'').substring(0,16)}</div>
+          <div class="ct-gancho" style="color:${textC}">${row.gancho||'(sin gancho)'}</div>
+          <div class="ct-brand" style="color:${kit.color}">${kit.siglas}</div>
+        </div>
+        ${!row.bgLoaded && !row.bgUrl && unsplashKey ? `<div class="card-spin"><div class="spin"></div><div class="spin-lbl">fondo…</div></div>` : ''}
+        <div class="card-acts">
+          <button class="ca-btn ca-pre" onclick="openModal(${i});event.stopPropagation()">👁 Ver</button>
+          <button class="ca-btn ca-dl" onclick="dlOne(${row.id});event.stopPropagation()">⬇</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="cb-client" style="color:${kit.color}">${row.cliente||activeClient}</div>
+        <div class="cb-gancho">${row.gancho||'(sin gancho)'}</div>
+        <div class="cb-meta">
+          <span class="meta-t">${row.layout}</span>
+          ${row.desarrollo ? `<span class="meta-t">${row.desarrollo}</span>` : ''}
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function toggleSel(id) {
+  const r = rows.find(r => r.id === id);
+  if (r) { r.selected = !r.selected; renderGrid(); updateDlBtns(); }
+}
+
+function toggleAll() {
+  const all = rows.every(r => r.selected);
+  rows.forEach(r => r.selected = !all);
+  renderGrid(); updateDlBtns();
+}
+
+function updateTblbl() {
+  const sel = rows.filter(r => r.selected).length;
+  document.getElementById('tb-lbl').textContent = sel > 0 ? `${rows.length} slides · ${sel} sel.` : `${rows.length} slides`;
+}
+
+function updateDlBtns() {
+  const hasSel = rows.some(r => r.selected);
+  document.getElementById('btn-sel').disabled = !hasSel;
+}
+
+function setView(v) {
+  view = v;
+  document.getElementById('vg').classList.toggle('active', v === 'g');
+  document.getElementById('vl').classList.toggle('active', v === 'l');
+  renderGrid();
+}
+
+// ══════════════════════════════════════════════════════════════
+// UNSPLASH
+// ══════════════════════════════════════════════════════════════
+async function fetchBg(row) {
+  if (!unsplashKey) return null;
+  const kit = KITS[row.cliente] || KITS[activeClient] || Object.values(KITS)[0];
+  const kw = (kit.cats && (kit.cats[row.categoria] || kit.cats['default'])) || 'professional business';
+  try {
+    const res = await fetch(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(kw)}&orientation=squarish&client_id=${unsplashKey}`);
+    if (!res.ok) { if (res.status===401||res.status===403) { unsplashKey=''; localStorage.removeItem('arim_unsplash_key'); toast('Clave Unsplash inválida','er'); } return null; }
+    const d = await res.json();
+    return d.urls?.regular || null;
+  } catch(e) { return null; }
+}
+
+async function blobify(url) {
+  try { const r = await fetch(url); const b = await r.blob(); return URL.createObjectURL(b); }
+  catch(e) { return url; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// GENERATE
+// ══════════════════════════════════════════════════════════════
+async function generateAll() {
+  if (!rows.length || generating) return;
+  generating = true;
+  const btn = document.getElementById('btn-gen');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin" style="width:14px;height:14px"></div> Generando…';
+  document.getElementById('prog-sec').style.display = 'block';
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    document.getElementById('prog-fill').style.width = ((i+1)/rows.length*100) + '%';
+    document.getElementById('prog-text').textContent = `${i+1}/${rows.length} · ${(row.gancho||'').substring(0,30)}`;
+
+    if (!row.bgUrl && unsplashKey) {
+      const url = await fetchBg(row);
+      if (url) row.bgUrl = await blobify(url);
+    }
+    row.bgLoaded = true;
+    row.selected = true;
+
+    const card = document.getElementById(`c-${row.id}`);
+    if (card) {
+      const bg = card.querySelector('.ct-bg');
+      if (bg && row.bgUrl) bg.style.cssText = `background-image:url('${row.bgUrl}');background-size:cover;background-position:center`;
+      const sp = card.querySelector('.card-spin');
+      if (sp) sp.remove();
+      card.classList.add('sel');
+      const chk = card.querySelector('.card-chk');
+      if (chk) { chk.style.background=KITS[activeClient]?.color||'#2DBD8F'; chk.style.borderColor=KITS[activeClient]?.color||'#2DBD8F'; }
+    }
+    await new Promise(r => setTimeout(r, unsplashKey ? 130 : 10));
+  }
+
+  generating = false;
+  btn.disabled = false;
+  btn.innerHTML = '<span>⚡</span> Generar todos los slides';
+  document.getElementById('btn-zip').disabled = false;
+  document.getElementById('btn-sel').disabled = false;
+  updateTblbl();
+  toast(`✓ ${rows.length} slides listos`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SLIDE HTML RENDERER (shared by preview + export)
+// ══════════════════════════════════════════════════════════════
+function renderSlide(row, sz = 500) {
+  const kit = KITS[row.cliente] || KITS[activeClient] || Object.values(KITS)[0];
+  const isDark = kit.dark;
+  const C = kit.color;
+  const textMain = isDark ? '#FFFFFF' : '#0D2B45';
+  const textSub  = isDark ? 'rgba(255,255,255,.65)' : '#445566';
+  const divLine  = isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.08)';
+  const layout   = row.layout || 'bold';
+  const G = row.gancho || '';
+  const P = row.copy   || '';
+  const T = row.cta    || '';
+  const K = row.categoria || '';
+  const num = row.id !== undefined ? row.id + 1 : 1;
+  const numStr = num < 10 ? '0'+num : num;
+  const bgImg = row.bgUrl
+    ? `background-image:url('${row.bgUrl}');background-size:cover;background-position:center`
+    : `background:${kit.bg}`;
+  const ov = row.bgUrl
+    ? `position:absolute;inset:0;background:linear-gradient(135deg,${kit.bg}EE,${kit.bg}99);z-index:1`
+    : '';
+
+  const fs = (t, mn, mx) => {
+    const l = (t||'').length;
+    return l < 30 ? mx : l < 80 ? Math.round(mx-(l-30)*(mx-mn)/80) : mn;
+  };
+  const p = n => Math.round(sz * n);
+
+  if (layout === 'bold') return `<div style="width:${sz}px;height:${sz}px;${bgImg};font-family:Outfit,sans-serif;position:relative;overflow:hidden">
+    ${ov?`<div style="${ov}"></div>`:''}
+    <div style="position:absolute;top:0;left:0;right:0;height:7px;background:${C};z-index:2"></div>
+    <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;padding:${p(.07)}px ${p(.08)}px">
+      <div style="display:inline-flex;align-items:center;gap:5px;background:${C}22;border-radius:20px;padding:3px 10px;align-self:flex-start;margin-bottom:${p(.05)}px">
+        <div style="width:5px;height:5px;border-radius:50%;background:${C}"></div>
+        <span style="font-size:${p(.021)}px;font-weight:700;letter-spacing:1px;color:${C};text-transform:uppercase">${K}</span>
+      </div>
+      <div style="font-size:${fs(G,p(.046),p(.082))}px;font-weight:800;color:${textMain};line-height:1.15;flex:1">${G}</div>
+      ${P?`<div style="width:34px;height:3px;background:${C};border-radius:2px;margin:${p(.038)}px 0"></div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:${p(.028)}px;color:${textSub};line-height:1.6;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden">${P}</div>`:''}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:${p(.044)}px;padding-top:${p(.03)}px;border-top:1px solid ${divLine}">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:22px;height:22px;background:${C};border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#fff">${kit.siglas}</div>
+          <span style="font-size:${p(.023)}px;font-weight:700;color:${textMain}">${row.cliente||activeClient}</span>
+        </div>
+        ${T?`<div style="font-size:${p(.021)}px;font-weight:700;background:${C};color:#fff;padding:5px 13px;border-radius:20px">${T}</div>`:''}
+      </div>
+    </div>
+    <div style="position:absolute;top:${p(.04)}px;right:${p(.04)}px;font-size:${p(.023)}px;font-weight:700;color:${isDark?'rgba(255,255,255,.12)':'rgba(0,0,0,.1)'};z-index:4">${numStr}</div>
+  </div>`;
+
+  if (layout === 'split') return `<div style="width:${sz}px;height:${sz}px;display:grid;grid-template-columns:1fr 1fr;font-family:Outfit,sans-serif;overflow:hidden">
+    <div style="${bgImg};position:relative">
+      ${ov?`<div style="${ov}"></div>`:''}
+      <div style="position:absolute;inset:0;z-index:2;padding:${p(.07)}px ${p(.055)}px;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-size:${p(.019)}px;font-weight:700;letter-spacing:.8px;color:${C};text-transform:uppercase;margin-bottom:${p(.04)}px;border-left:3px solid ${C};padding-left:7px">${K}</div>
+        <div style="font-size:${fs(G,p(.036),p(.056))}px;font-weight:800;color:${textMain};line-height:1.2;margin-bottom:${P?p(.03)+'px':'0'}">${G}</div>
+        ${P?`<div style="font-family:'DM Sans',sans-serif;font-size:${p(.025)}px;color:${textSub};line-height:1.55;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden">${P}</div>`:''}
+      </div>
+    </div>
+    <div style="background:${C};display:flex;flex-direction:column;padding:${p(.07)}px ${p(.06)}px;justify-content:center;position:relative;overflow:hidden">
+      <div style="position:absolute;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);bottom:-30px;right:-30px"></div>
+      <div style="font-size:${p(.11)}px;font-weight:900;color:rgba(255,255,255,.12);line-height:1;margin-bottom:8px">${numStr}</div>
+      <div style="font-size:${p(.024)}px;font-weight:700;color:rgba(255,255,255,.9);line-height:1.5;margin-bottom:auto">${T||kit.siglas}</div>
+      <div style="margin-top:${p(.12)}px;font-size:${p(.017)}px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px">${(row.cliente||activeClient).toUpperCase()}</div>
+    </div>
+  </div>`;
+
+  // center
+  return `<div style="width:${sz}px;height:${sz}px;${bgImg};font-family:Outfit,sans-serif;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:${row.bgUrl?`linear-gradient(135deg,${kit.bg}F0,${kit.bg}CC)`:kit.bg}"></div>
+    <div style="position:absolute;top:0;left:0;width:65px;height:65px;border-bottom-right-radius:65px;background:${C};opacity:.12"></div>
+    <div style="position:absolute;bottom:0;right:0;width:65px;height:65px;border-top-left-radius:65px;background:${C};opacity:.12"></div>
+    <div style="position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:${p(.09)}px;text-align:center">
+      <div style="font-size:${p(.12)}px;font-weight:900;color:${C};opacity:.2;line-height:.6;margin-bottom:12px">❝</div>
+      <div style="font-size:${p(.019)}px;font-weight:700;letter-spacing:1px;color:${C};text-transform:uppercase;background:${C}18;padding:3px 11px;border-radius:20px;margin-bottom:16px">${K}</div>
+      <div style="font-size:${fs(G,p(.042),p(.066))}px;font-weight:800;color:${textMain};line-height:1.2;margin-bottom:${p(.038)}px">${G}</div>
+      ${P?`<div style="font-family:'DM Sans',sans-serif;font-size:${p(.025)}px;color:${textSub};line-height:1.6;margin-bottom:${p(.048)}px;max-width:${p(.78)}px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden">${P}</div>`:''}
+      <div style="width:32px;height:3px;background:${C};border-radius:2px;margin-bottom:16px"></div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <div style="width:20px;height:20px;background:${C};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#fff">${kit.siglas}</div>
+        <span style="font-size:${p(.022)}px;font-weight:700;color:${textMain}">${row.cliente||activeClient}</span>
+        ${T?`<span style="margin-left:7px;font-size:${p(.019)}px;font-weight:700;color:${C}">${T}</span>`:''}
+      </div>
+    </div>
+    <div style="position:absolute;top:${p(.04)}px;right:${p(.04)}px;font-size:${p(.022)}px;font-weight:700;color:${isDark?'rgba(255,255,255,.1)':'rgba(0,0,0,.08)'};z-index:3">${numStr}</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════════════════
+function openModal(idx) {
+  modalIdx = idx;
+  document.getElementById('modal').classList.add('open');
+  renderModal();
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function renderModal() {
+  const row = rows[modalIdx];
+  if (!row) return;
+  document.getElementById('mctr').textContent = `${modalIdx+1} / ${rows.length}`;
+  document.getElementById('modal-canvas').innerHTML = renderSlide(row, 380);
+  document.getElementById('e-gancho').value = row.gancho || '';
+  document.getElementById('e-copy').value   = row.copy   || '';
+  document.getElementById('e-cta').value    = row.cta    || '';
+  document.getElementById('e-cat').value    = row.categoria || '';
+  document.querySelectorAll('.lm').forEach(el => el.classList.toggle('sel', el.dataset.l === (row.layout||'bold')));
+}
+
+function mNav(d) { saveEdit(); modalIdx = Math.max(0, Math.min(rows.length-1, modalIdx+d)); renderModal(); }
+
+function saveEdit() {
+  const row = rows[modalIdx];
+  if (!row) return;
+  row.gancho    = document.getElementById('e-gancho').value;
+  row.copy      = document.getElementById('e-copy').value;
+  row.cta       = document.getElementById('e-cta').value;
+  row.categoria = document.getElementById('e-cat').value;
+}
+
+function applyEdit() { saveEdit(); renderModal(); renderGrid(); }
+
+function setMLayout(l, el) {
+  const row = rows[modalIdx];
+  if (!row) return;
+  row.layout = l;
+  document.querySelectorAll('.lm').forEach(e => e.classList.toggle('sel', e.dataset.l === l));
+  renderModal(); renderGrid();
+}
+
+async function regenBg() {
+  const row = rows[modalIdx];
+  if (!row) return;
+  if (!unsplashKey) { toast('Configura tu clave Unsplash primero','er'); return; }
+  row.bgUrl = null;
+  toast('Buscando nuevo fondo…');
+  const url = await fetchBg(row);
+  if (url) { row.bgUrl = await blobify(url); renderModal(); renderGrid(); toast('✓ Nuevo fondo aplicado'); }
+  else toast('Sin resultado, intenta de nuevo','er');
+}
+
+async function dlModal() {
+  saveEdit();
+  const row = rows[modalIdx];
+  if (!row) return;
+  await exportSlides([row], false);
+}
+
+// ══════════════════════════════════════════════════════════════
+// DOWNLOAD
+// ══════════════════════════════════════════════════════════════
+async function dlOne(id) { const r = rows.find(r => r.id === id); if (r) await exportSlides([r], false); }
+async function downloadSelected() { const sel = rows.filter(r => r.selected); if (!sel.length) { toast('Selecciona slides primero','er'); return; } await exportSlides(sel, sel.length > 1); }
+async function downloadZip() { if (!rows.length) return; await exportSlides(rows, true); }
+
+async function exportSlides(list, zip) {
+  toast(`Generando ${list.length} imagen${list.length>1?'es':''}…`);
+  const jsz = zip ? new JSZip() : null;
+  const folder = jsz ? jsz.folder('carousel_arim') : null;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1000px;height:1000px';
+  document.body.appendChild(wrap);
+
+  for (let i = 0; i < list.length; i++) {
+    const row = list[i];
+    wrap.innerHTML = renderSlide(row, 1000);
+    await new Promise(r => setTimeout(r, 100));
+    try {
+      const c = await html2canvas(wrap.firstElementChild, { scale:1, useCORS:true, logging:false, backgroundColor:null });
+      const dataUrl = c.toDataURL('image/png');
+      const fn = `${String(i+1).padStart(2,'0')}_${(row.cliente||activeClient).replace(/\s/g,'_')}_${(row.gancho||'slide').substring(0,22).replace(/[^\w\sáéíóúÁÉÍÓÚñÑ]/g,'').replace(/\s/g,'_')}.png`;
+      if (zip) folder.file(fn, dataUrl.split(',')[1], {base64:true});
+      else { const a = document.createElement('a'); a.download = fn; a.href = dataUrl; a.click(); await new Promise(r => setTimeout(r, 200)); }
+    } catch(e) { console.warn('slide error', e); }
+  }
+  document.body.removeChild(wrap);
+
+  if (zip) {
+    toast('Comprimiendo ZIP…');
+    const blob = await jsz.generateAsync({ type:'blob' });
+    const a = document.createElement('a');
+    a.download = `carousel_${(activeClient||'arim').replace(/\s/g,'_')}_${Date.now()}.zip`;
+    a.href = URL.createObjectURL(blob);
+    a.click();
+    toast(`✓ ZIP con ${list.length} slides descargado`);
+  } else {
+    toast(`✓ ${list.length} slide${list.length>1?'s':''} descargado${list.length>1?'s':''}`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// TOAST & KEYBOARD
+// ══════════════════════════════════════════════════════════════
+let toastT;
+function toast(msg, type = 'ok') {
+  clearTimeout(toastT);
+  const el = document.getElementById('toast');
+  document.getElementById('tmsg').textContent = msg;
+  el.className = `toast ${type} show`;
+  toastT = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (!document.getElementById('modal').classList.contains('open')) return;
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowLeft') mNav(-1);
+  if (e.key === 'ArrowRight') mNav(1);
+});
+</script>
+</body>
+</html>
