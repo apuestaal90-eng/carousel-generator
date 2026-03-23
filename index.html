@@ -474,8 +474,10 @@ let modalCarouselIdx = 0; // Index within the carousel group
 // ══════════════════════════════════════════════════════════════
 window.onload = () => {
   buildSplash();
+  unsplashKey = 'DDVcopQc4pXHGRt_wyVdI11_fV2ElUMG62h0hXNXcX4';
+  showKeyOk();
   const k = localStorage.getItem('arim_unsplash_key');
-  if (k) { unsplashKey = k; document.getElementById('splash-key').value = k; showKeyOk(); }
+  if (k) { document.getElementById('splash-key').value = k; }
   setupDrop();
 };
 
@@ -514,7 +516,7 @@ function selectClient(name, el) {
 function saveSplashKey() {
   const v = document.getElementById('splash-key').value.trim();
   if (!v) return;
-  unsplashKey = v;
+  unsplashKey = v || 'DDVcopQc4pXHGRt_wyVdI11_fV2ElUMG62h0hXNXcX4';
   localStorage.setItem('arim_unsplash_key', v);
   showKeyOk();
   toast('✓ Clave Unsplash guardada');
@@ -867,8 +869,8 @@ async function fetchBg(row) {
       );
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          unsplashKey = ''; localStorage.removeItem('arim_unsplash_key');
-          toast('Clave Unsplash inválida', 'er');
+          unsplashKey = 'DDVcopQc4pXHGRt_wyVdI11_fV2ElUMG62h0hXNXcX4';
+          toast('Clave Unsplash actualizada', 'er');
         }
         return null;
       }
@@ -989,9 +991,9 @@ async function preloadLogos() {
 function getLogo(clientName, isDark, color, sz) {
   const logoUrl = logoCache[clientName] || LOGOS[clientName];
   if (logoUrl) {
-    const h = Math.round(sz * 0.065);
+    const h = Math.round(sz * 0.10);
     // Use preprocessed URL (black removed) — works with html2canvas
-    return `<img src="${logoUrl}" style="height:${h}px;max-width:${Math.round(sz*.45)}px;object-fit:contain;opacity:0.95" alt="${clientName}" crossorigin="anonymous">`;
+    return `<img src="${logoUrl}" style="height:${h}px;max-width:${Math.round(sz*.55)}px;object-fit:contain;opacity:0.95" alt="${clientName}" crossorigin="anonymous">`;
   }
   // Fallback siglas
   const kit = KITS[clientName] || {};
