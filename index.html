@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=EB+Garamond:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ── RESET & BASE ─────────────────────────────────────────── */
 *{margin:0;padding:0;box-sizing:border-box}
@@ -405,6 +405,12 @@ const KITS = {
   'Ávila Herrera': {
     siglas:'AH', color:'#C9A84C', bg:'#0D2B45', dark:true,
     desc:'Bienes raíces premium',
+    // Brand design system
+    headlineFont: "'EB Garamond', Georgia, serif",
+    accentColor2: '#8B6914',      // Darker gold for shadows
+    accentColor3: '#E8C96A',      // Lighter gold for highlights
+    bgGradient: 'linear-gradient(160deg, #0D2B45 0%, #0A2035 60%, #071525 100%)',
+    decorStyle: 'avila',          // Triggers unique decorative elements
     cats:{
       'default':'luxury real estate architecture modern',
       'TreeView':'modern residential architecture forest green',
@@ -459,6 +465,9 @@ let view = 'g';
 let modalIdx = 0;
 let unsplashKey = '';
 let generating = false;
+let usedImageUrls = new Set(); // Tracks used Unsplash URLs to avoid repeats
+let modalCarouselGroup = null; // When set, modal nav stays within this carousel group
+let modalCarouselIdx = 0; // Index within the carousel group
 
 // ══════════════════════════════════════════════════════════════
 // INIT
@@ -705,7 +714,7 @@ function loadData(raw, fname) {
 }
 
 function clearFile() {
-  rows = []; carouselGroups = {};
+  rows = []; carouselGroups = {}; usedImageUrls = new Set();
   document.getElementById('file-loaded').classList.remove('show');
   document.getElementById('upload-zone').style.display = 'block';
   document.getElementById('stats-sec').style.display = 'none';
@@ -757,7 +766,9 @@ function renderGrid() {
         </div>
         ${!row.bgLoaded && !row.bgUrl && unsplashKey ? `<div class="card-spin"><div class="spin"></div><div class="spin-lbl">fondo…</div></div>` : ''}
         <div class="card-acts">
-          <button class="ca-btn ca-pre" onclick="openModal(${i});event.stopPropagation()">👁 Ver</button>
+          <button class="ca-btn ca-pre" onclick="openModal(${i});event.stopPropagation()">
+            ${row.carrusel_id ? '🎠 Ver carrusel' : '👁 Ver'}
+          </button>
           <button class="ca-btn ca-dl" onclick="dlOne(${row.id});event.stopPropagation()">⬇</button>
         </div>
       </div>
@@ -810,54 +821,67 @@ async function fetchBg(row) {
   if (!unsplashKey) return null;
   const kit = KITS[row.cliente] || KITS[activeClient] || Object.values(KITS)[0];
   
-  // Build smart keyword from content context
-  let kw = '';
+  // Build keyword from GANCHO context
   const gancho = (row.gancho || '').toLowerCase();
   const desarrollo = (row.desarrollo || '').toLowerCase();
-  const tema = (row.tema || '').toLowerCase();
-  
-  // Client-specific keyword from desarrollo
+  let kw = '';
+
   if (desarrollo && kit.cats && kit.cats[row.desarrollo]) {
     kw = kit.cats[row.desarrollo];
-  }
-  // Extract context from gancho keywords
-  else if (gancho.includes('cetes') || gancho.includes('bolsa') || gancho.includes('instrumento')) {
+  } else if (gancho.includes('cetes') || gancho.includes('bolsa') || gancho.includes('instrumento')) {
     kw = 'finance investment comparison data chart';
   } else if (gancho.includes('checklist') || gancho.includes('preguntas') || gancho.includes('pasos')) {
-    kw = 'professional checklist business planning';
+    kw = 'business professional planning checklist';
   } else if (gancho.includes('historia') || gancho.includes('caso') || gancho.includes('inversionista')) {
-    kw = 'successful entrepreneur business meeting';
+    kw = 'successful entrepreneur business meeting handshake';
   } else if (gancho.includes('preventa') || gancho.includes('plusvalía') || gancho.includes('diferencial')) {
-    kw = 'real estate investment growth property value';
+    kw = 'real estate investment property luxury';
   } else if (gancho.includes('dato') || gancho.includes('número') || gancho.includes('absorción') || gancho.includes('%')) {
-    kw = 'real estate data analysis market numbers';
-  } else if (gancho.includes('por qué') || gancho.includes('razón') || gancho.includes('explica')) {
-    kw = 'real estate market analysis urban architecture';
+    kw = 'real estate market data analysis growth';
   } else if (gancho.includes('treeview') || desarrollo.includes('treeview')) {
-    kw = 'modern residential architecture green nature';
+    kw = 'modern residential green nature architecture';
   } else if (gancho.includes('signature') || desarrollo.includes('signature')) {
-    kw = 'luxury penthouse architecture premium interior';
+    kw = 'luxury penthouse premium interior design';
   } else if (gancho.includes('brio') || desarrollo.includes('brio')) {
-    kw = 'contemporary architecture residential modern';
+    kw = 'contemporary residential modern building';
   } else if (gancho.includes('valle') || desarrollo.includes('valle')) {
-    kw = 'urban residential architecture guadalajara city';
+    kw = 'urban city architecture guadalajara residential';
   } else if (gancho.includes('fisio') || gancho.includes('dolor') || gancho.includes('columna')) {
-    kw = 'physiotherapy treatment back pain clinic';
-  } else if (gancho.includes('viaje') || gancho.includes('destino') || gancho.includes('hotel')) {
-    kw = 'luxury travel destination hotel scenic';
+    kw = 'physiotherapy treatment wellness clinic';
+  } else if (gancho.includes('viaje') || gancho.includes('destino')) {
+    kw = 'luxury travel destination scenic view';
   } else {
-    kw = (kit.cats && kit.cats['default']) || 'professional business modern';
+    kw = (kit.cats && kit.cats['default']) || 'professional modern architecture';
   }
-  
-  try {
-    const res = await fetch(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(kw)}&orientation=squarish&client_id=${unsplashKey}`);
-    if (!res.ok) {
-      if (res.status===401||res.status===403) { unsplashKey=''; localStorage.removeItem('arim_unsplash_key'); toast('Clave Unsplash inválida','er'); }
-      return null;
-    }
-    const d = await res.json();
-    return d.urls?.regular || null;
-  } catch(e) { return null; }
+
+  // Add variety: append a variation word based on row.id to get different photos
+  const variants = ['morning','aerial','interior','detail','wide','lifestyle','minimal','dramatic'];
+  const variant = variants[(row.id || 0) % variants.length];
+  const finalKw = `${kw} ${variant}`;
+
+  // Try up to 3 times to get a non-repeated image
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(
+        `https://api.unsplash.com/photos/random?query=${encodeURIComponent(finalKw)}&orientation=squarish&client_id=${unsplashKey}`
+      );
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          unsplashKey = ''; localStorage.removeItem('arim_unsplash_key');
+          toast('Clave Unsplash inválida', 'er');
+        }
+        return null;
+      }
+      const d = await res.json();
+      const url = d.urls?.regular;
+      if (url && !usedImageUrls.has(url)) {
+        usedImageUrls.add(url);
+        return url;
+      }
+      // URL was already used — try again with slightly different query
+    } catch(e) { return null; }
+  }
+  return null; // All attempts used repeated images — return null (use solid color)
 }
 
 async function blobify(url) {
@@ -985,22 +1009,92 @@ function renderSlide(row, sz = 500) {
   const G = row.gancho || '';
   const P = row.copy   || '';
   const T = row.cta    || '';
-  const num = row.id !== undefined ? row.id + 1 : 1;
-  const numStr = num < 10 ? '0'+num : num;
   const bgImg = row.bgUrl
     ? `background-image:url('${row.bgUrl}');background-size:cover;background-position:center`
-    : `background:${kit.bg}`;
+    : (kit.bgGradient ? `background:${kit.bgGradient}` : `background:${kit.bg}`);
   const ov = row.bgUrl
-    ? `position:absolute;inset:0;background:linear-gradient(135deg,${kit.bg}EE,${kit.bg}99);z-index:1`
+    ? `position:absolute;inset:0;background:linear-gradient(135deg,${kit.bg}F2,${kit.bg}AA);z-index:1`
     : '';
   const logoHTML = getLogo(row.cliente || activeClient, isDark, C, sz);
-
+  const p = n => Math.round(sz * n);
   const fs = (t, mn, mx) => {
     const l = (t||'').length;
     return l < 30 ? mx : l < 80 ? Math.round(mx-(l-30)*(mx-mn)/80) : mn;
   };
-  const p = n => Math.round(sz * n);
 
+  // ── ÁVILA HERRERA BRAND SYSTEM ──────────────────────────────
+  if (kit.decorStyle === 'avila') {
+    const gold = kit.color;
+    const gold2 = kit.accentColor3 || '#E8C96A';
+    const hFont = kit.headlineFont;
+    const bgFull = row.bgUrl
+      ? `background-image:url('${row.bgUrl}');background-size:cover;background-position:center`
+      : `background:${kit.bgGradient || kit.bg}`;
+    const ovFull = row.bgUrl
+      ? `position:absolute;inset:0;background:linear-gradient(160deg,rgba(7,21,37,.96) 0%,rgba(10,32,53,.88) 50%,rgba(13,43,69,.80) 100%);z-index:1`
+      : '';
+
+    if (layout === 'bold') return `<div style="width:${sz}px;height:${sz}px;${bgFull};font-family:Outfit,sans-serif;position:relative;overflow:hidden">
+      ${ovFull ? `<div style="${ovFull}"></div>` : ''}
+      <!-- Gold architectural lines -->
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${gold},${gold2},${gold});z-index:2"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:1px;background:${gold}44;z-index:2"></div>
+      <div style="position:absolute;top:${p(.055)}px;left:${p(.055)}px;width:${p(.04)}px;height:${p(.04)}px;border-top:1.5px solid ${gold};border-left:1.5px solid ${gold};z-index:2;opacity:.7"></div>
+      <div style="position:absolute;bottom:${p(.055)}px;right:${p(.055)}px;width:${p(.04)}px;height:${p(.04)}px;border-bottom:1.5px solid ${gold};border-right:1.5px solid ${gold};z-index:2;opacity:.7"></div>
+      <!-- Content -->
+      <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;padding:${p(.09)}px ${p(.09)}px ${p(.07)}px">
+        <div style="font-family:${hFont};font-size:${fs(G,p(.044),p(.078))}px;font-weight:600;color:#FFFFFF;line-height:1.2;flex:1;letter-spacing:-0.02em">${G}</div>
+        ${P ? `<div style="width:${p(.06)}px;height:1px;background:linear-gradient(90deg,${gold},transparent);margin:${p(.032)}px 0"></div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:${p(.026)}px;color:rgba(255,255,255,.65);line-height:1.65;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden">${P}</div>` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:${p(.045)}px;padding-top:${p(.03)}px;border-top:1px solid rgba(201,168,76,.2)">
+          <div>${logoHTML}</div>
+          ${T ? `<div style="font-size:${p(.02)}px;font-weight:600;color:${gold};letter-spacing:.5px;font-family:'DM Sans',sans-serif">${T}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+
+    if (layout === 'split') return `<div style="width:${sz}px;height:${sz}px;display:grid;grid-template-columns:55% 45%;font-family:Outfit,sans-serif;overflow:hidden;position:relative">
+      <!-- Left: content -->
+      <div style="${bgFull};position:relative">
+        ${ovFull ? `<div style="${ovFull}"></div>` : ''}
+        <div style="position:absolute;inset:0;z-index:2;padding:${p(.08)}px ${p(.07)}px;display:flex;flex-direction:column;justify-content:flex-end">
+          <div style="font-family:${hFont};font-size:${fs(G,p(.036),p(.052))}px;font-weight:600;color:#fff;line-height:1.25;margin-bottom:${p(.025)}px;letter-spacing:-0.01em">${G}</div>
+          ${P ? `<div style="font-family:'DM Sans',sans-serif;font-size:${p(.023)}px;color:rgba(255,255,255,.6);line-height:1.6;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:${p(.04)}px">${P}</div>` : ''}
+          <div>${logoHTML}</div>
+        </div>
+      </div>
+      <!-- Right: gold accent panel -->
+      <div style="background:linear-gradient(180deg,${gold} 0%,${kit.accentColor2||'#8B6914'} 100%);display:flex;flex-direction:column;justify-content:space-between;padding:${p(.07)}px ${p(.065)}px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.08)' stroke-width='0.5'%3E%3Cpath d='M0 0h60v60H0z'/%3E%3Cpath d='M0 30h60M30 0v60'/%3E%3C/g%3E%3C/svg%3E") repeat;opacity:.4"></div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:${p(.016)}px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.7);text-transform:uppercase;position:relative;z-index:1">Ávila Herrera</div>
+        <div style="font-family:${hFont};font-size:${p(.1)}px;font-weight:800;color:rgba(255,255,255,.15);line-height:1;position:relative;z-index:1">AH</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:${p(.021)}px;font-weight:600;color:rgba(255,255,255,.9);line-height:1.4;position:relative;z-index:1">${T || 'Grupo Inmobiliario'}</div>
+      </div>
+      <!-- Top gold line -->
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${gold};z-index:3"></div>
+    </div>`;
+
+    // center layout — AH version
+    return `<div style="width:${sz}px;height:${sz}px;${bgFull};font-family:Outfit,sans-serif;position:relative;overflow:hidden">
+      ${ovFull ? `<div style="${ovFull}"></div>` : ''}
+      <!-- Decorative frame -->
+      <div style="position:absolute;top:${p(.05)}px;left:${p(.05)}px;right:${p(.05)}px;bottom:${p(.05)}px;border:1px solid ${gold}30;z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${gold},${gold2},${gold});z-index:3"></div>
+      <!-- Content -->
+      <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:${p(.1)}px;text-align:center">
+        <div style="width:${p(.08)}px;height:1px;background:${gold};margin-bottom:${p(.04)}px;opacity:.8"></div>
+        <div style="font-family:${hFont};font-size:${fs(G,p(.042),p(.066))}px;font-weight:600;color:#FFFFFF;line-height:1.25;margin-bottom:${p(.038)}px;letter-spacing:-0.01em">${G}</div>
+        ${P ? `<div style="font-family:'DM Sans',sans-serif;font-size:${p(.025)}px;color:rgba(255,255,255,.6);line-height:1.65;max-width:${p(.82)}px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:${p(.042)}px">${P}</div>` : ''}
+        <div style="width:${p(.08)}px;height:1px;background:${gold};margin-bottom:${p(.038)}px;opacity:.8"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:${p(.012)}px">
+          <div>${logoHTML}</div>
+          ${T ? `<div style="font-family:'DM Sans',sans-serif;font-size:${p(.019)}px;color:${gold};font-weight:600;letter-spacing:.5px;margin-top:${p(.008)}px">${T}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── DEFAULT BRAND SYSTEM (other clients) ─────────────────────
   if (layout === 'bold') return `<div style="width:${sz}px;height:${sz}px;${bgImg};font-family:Outfit,sans-serif;position:relative;overflow:hidden">
     ${ov?`<div style="${ov}"></div>`:''}
     <div style="position:absolute;top:0;left:0;right:0;height:6px;background:${C};z-index:2"></div>
@@ -1026,13 +1120,11 @@ function renderSlide(row, sz = 500) {
     </div>
     <div style="background:${C};display:flex;flex-direction:column;padding:${p(.07)}px ${p(.06)}px;justify-content:center;position:relative;overflow:hidden">
       <div style="position:absolute;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);bottom:-30px;right:-30px"></div>
-      <div style="font-size:${p(.11)}px;font-weight:900;color:rgba(255,255,255,.12);line-height:1;margin-bottom:8px">${numStr}</div>
-      <div style="font-size:${p(.024)}px;font-weight:700;color:rgba(255,255,255,.9);line-height:1.5">${T||''}</div>
+      <div style="font-size:${p(.022)}px;font-weight:700;color:rgba(255,255,255,.9);line-height:1.5">${T||''}</div>
       <div style="margin-top:auto;font-size:${p(.017)}px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px">${(row.cliente||activeClient).toUpperCase()}</div>
     </div>
   </div>`;
 
-  // center
   return `<div style="width:${sz}px;height:${sz}px;${bgImg};font-family:Outfit,sans-serif;position:relative;overflow:hidden">
     <div style="position:absolute;inset:0;background:${row.bgUrl?`linear-gradient(135deg,${kit.bg}F0,${kit.bg}CC)`:kit.bg}"></div>
     <div style="position:absolute;top:0;left:0;width:60px;height:60px;border-bottom-right-radius:60px;background:${C};opacity:.12"></div>
@@ -1052,18 +1144,38 @@ function renderSlide(row, sz = 500) {
 // ══════════════════════════════════════════════════════════════
 // MODAL
 // ══════════════════════════════════════════════════════════════
-function openModal(idx) {
+function openModal(idx, forceCarouselGroup) {
   modalIdx = idx;
+  const row = rows[idx];
+  
+  // If slide belongs to a carousel, set carousel context
+  if (row && row.carrusel_id && carouselGroups[row.carrusel_id] && carouselGroups[row.carrusel_id].length > 1) {
+    modalCarouselGroup = [...carouselGroups[row.carrusel_id]].sort((a,b) => (a.slide_num||1) - (b.slide_num||1));
+    modalCarouselIdx = modalCarouselGroup.findIndex(r => r.id === row.id);
+    if (modalCarouselIdx === -1) modalCarouselIdx = 0;
+  } else {
+    modalCarouselGroup = null;
+    modalCarouselIdx = 0;
+  }
+  
   document.getElementById('modal').classList.add('open');
   renderModal();
 }
 
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  modalCarouselGroup = null;
+  modalCarouselIdx = 0;
+}
 
 function renderModal() {
   const row = rows[modalIdx];
   if (!row) return;
-  document.getElementById('mctr').textContent = `${modalIdx+1} / ${rows.length}`;
+  if (modalCarouselGroup) {
+    document.getElementById('mctr').textContent = `Slide ${modalCarouselIdx+1} / ${modalCarouselGroup.length} — ${rows[modalIdx]?.carrusel_id || ''}`;
+  } else {
+    document.getElementById('mctr').textContent = `${modalIdx+1} / ${rows.length}`;
+  }
   document.getElementById('modal-canvas').innerHTML = renderSlide(row, 380);
   document.getElementById('e-gancho').value = row.gancho || '';
   document.getElementById('e-copy').value   = row.copy   || '';
@@ -1082,7 +1194,19 @@ function renderModal() {
   }
 }
 
-function mNav(d) { saveEdit(); modalIdx = Math.max(0, Math.min(rows.length-1, modalIdx+d)); renderModal(); }
+function mNav(d) {
+  saveEdit();
+  if (modalCarouselGroup) {
+    // Navigate within carousel group
+    modalCarouselIdx = Math.max(0, Math.min(modalCarouselGroup.length - 1, modalCarouselIdx + d));
+    const targetRow = modalCarouselGroup[modalCarouselIdx];
+    modalIdx = rows.findIndex(r => r.id === targetRow.id);
+  } else {
+    // Navigate global rows
+    modalIdx = Math.max(0, Math.min(rows.length - 1, modalIdx + d));
+  }
+  renderModal();
+}
 
 function saveEdit() {
   const row = rows[modalIdx];
