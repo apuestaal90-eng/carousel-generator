@@ -366,7 +366,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
       <button class="btn-regen" onclick="regenBg()">🔄 Nuevo fondo</button>
-      <button class="btn-modal-dl" onclick="dlModal()">⬇ Descargar slide</button>
+      <button class="btn-modal-dl" id="btn-modal-dl-carousel" onclick="dlModalCarousel()" style="display:none;background:#1A6FBB;margin-bottom:6px">🎠 Descargar carrusel completo</button>
+      <button class="btn-modal-dl" onclick="dlModal()">⬇ Solo este slide</button>
     </div>
   </div>
 </div>
@@ -908,7 +909,7 @@ function getLogo(clientName, isDark, color, sz) {
   if (logoUrl) {
     const blendMode = isDark ? 'screen' : 'multiply';
     const h = Math.round(sz * 0.062);
-    return `<img src="${'${logoUrl}'}" style="height:${'${h}'}px;object-fit:contain;mix-blend-mode:${blendMode};opacity:0.95" alt="${'${clientName}'}">`;
+    return `<img src="${logoUrl}" style="height:${h}px;object-fit:contain;mix-blend-mode:${blendMode};opacity:0.95" alt="${clientName}">`;
   }
   // Fallback siglas
   const kit = KITS[clientName] || {};
@@ -1013,6 +1014,16 @@ function renderModal() {
   document.getElementById('e-cta').value    = row.cta    || '';
   document.getElementById('e-cat').value    = row.categoria || '';
   document.querySelectorAll('.lm').forEach(el => el.classList.toggle('sel', el.dataset.l === (row.layout||'bold')));
+
+  // Show carousel download button if this slide belongs to a carousel
+  const carouselBtn = document.getElementById('btn-modal-dl-carousel');
+  if (row.carrusel_id && carouselGroups[row.carrusel_id]) {
+    const count = carouselGroups[row.carrusel_id].length;
+    carouselBtn.style.display = 'block';
+    carouselBtn.textContent = `🎠 Descargar carrusel (${count} slides)`;
+  } else {
+    carouselBtn.style.display = 'none';
+  }
 }
 
 function mNav(d) { saveEdit(); modalIdx = Math.max(0, Math.min(rows.length-1, modalIdx+d)); renderModal(); }
@@ -1054,10 +1065,32 @@ async function dlModal() {
   await exportSlides([row], false);
 }
 
+async function dlModalCarousel() {
+  saveEdit();
+  const row = rows[modalIdx];
+  if (!row || !row.carrusel_id) return;
+  const group = carouselGroups[row.carrusel_id];
+  if (!group || !group.length) return;
+  // Sort by slide_num
+  const sorted = [...group].sort((a,b) => (a.slide_num||1) - (b.slide_num||1));
+  toast(`Generando carrusel ${row.carrusel_id} (${sorted.length} slides)…`);
+  await exportSlides(sorted, sorted.length > 1);
+}
+
 // ══════════════════════════════════════════════════════════════
 // DOWNLOAD
 // ══════════════════════════════════════════════════════════════
-async function dlOne(id) { const r = rows.find(r => r.id === id); if (r) await exportSlides([r], false); }
+async function dlOne(id) {
+  const r = rows.find(r => r.id === id);
+  if (!r) return;
+  // If part of carousel, download full carousel
+  if (r.carrusel_id && carouselGroups[r.carrusel_id] && carouselGroups[r.carrusel_id].length > 1) {
+    const group = [...carouselGroups[r.carrusel_id]].sort((a,b) => (a.slide_num||1) - (b.slide_num||1));
+    await exportSlides(group, true);
+  } else {
+    await exportSlides([r], false);
+  }
+}
 async function downloadSelected() { const sel = rows.filter(r => r.selected); if (!sel.length) { toast('Selecciona slides primero','er'); return; } await exportSlides(sel, sel.length > 1); }
 async function downloadZip() { if (!rows.length) return; await exportSlides(rows, true); }
 
