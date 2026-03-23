@@ -530,6 +530,8 @@ function launchApp() {
   document.getElementById('topbar-client').style.borderColor = `${kit.color}40`;
   document.getElementById('topbar-client').style.background = `${kit.color}12`;
   if (unsplashKey) document.getElementById('badge-key-top').style.display = 'inline';
+  // Preprocess logos immediately
+  preloadLogos();
 }
 
 function backToSplash() {
@@ -643,7 +645,7 @@ function loadData(raw, fname) {
       categoria:   get(row, 'categoria')  || get(row, 'tipo') || '',
       tema:        get(row, 'tema')       || get(row, 'categoria') || '',
       gancho,
-      copy:        get(row, 'copy'),
+      copy:        get(row, 'copy').replace(/^Slide\s*\d+\s*de\s*\d+\s*[:\-]?\s*/i, '').trim(),
       cta:         get(row, 'cta'),
       layout:      (get(row, 'layout')   || 'bold').toLowerCase(),
       desarrollo:  get(row, 'desarrollo') || '',
@@ -664,12 +666,19 @@ function loadData(raw, fname) {
   const listo = all.filter(r => r.status === 'LISTO').length;
   const arch  = all.filter(r => r.status === 'ARCHIVADO').length;
 
-  // 5. Group carousels: rows with same carrusel_id become a group
+  // 5. Group carousels: by CARRUSEL_ID if present, else by FORMATO=Carrusel+TEMA
   carouselGroups = {};
-  pending.forEach(r => {
+  pending.forEach((r, i) => {
     if (r.carrusel_id) {
+      // Explicit carousel ID
       if (!carouselGroups[r.carrusel_id]) carouselGroups[r.carrusel_id] = [];
       carouselGroups[r.carrusel_id].push(r);
+    } else if (r.formato && r.formato.toLowerCase().includes('arrus') && r.tema) {
+      // Auto-group by tema for old-format parrillas without CARRUSEL_ID
+      const autoKey = 'AUTO_' + r.tema.substring(0, 30).replace(/\s/g,'_');
+      r.carrusel_id = autoKey;
+      if (!carouselGroups[autoKey]) carouselGroups[autoKey] = [];
+      carouselGroups[autoKey].push(r);
     }
   });
 
@@ -873,8 +882,19 @@ async function generateAll() {
     document.getElementById('prog-text').textContent = `${i+1}/${rows.length} · ${(row.gancho||'').substring(0,30)}`;
 
     if (!row.bgUrl && unsplashKey) {
-      const url = await fetchBg(row);
-      if (url) row.bgUrl = await blobify(url);
+      // For carousel slides: reuse first slide's background for visual consistency
+      if (row.carrusel_id && carouselGroups[row.carrusel_id]) {
+        const firstSlide = carouselGroups[row.carrusel_id][0];
+        if (firstSlide.bgUrl && firstSlide !== row) {
+          row.bgUrl = firstSlide.bgUrl; // Share background within carousel
+        } else {
+          const url = await fetchBg(row);
+          if (url) row.bgUrl = await blobify(url);
+        }
+      } else {
+        const url = await fetchBg(row);
+        if (url) row.bgUrl = await blobify(url);
+      }
     }
     row.bgLoaded = true;
     row.selected = true;
@@ -904,12 +924,50 @@ async function generateAll() {
 // ══════════════════════════════════════════════════════════════
 // SLIDE HTML RENDERER (shared by preview + export)
 // ══════════════════════════════════════════════════════════════
+// Logo cache — stores preprocessed (black bg removed) data URLs
+const logoCache = {};
+
+// Preprocess logo: remove near-black pixels (works with html2canvas)
+async function preprocessLogo(clientName) {
+  if (logoCache[clientName]) return logoCache[clientName];
+  const src = LOGOS[clientName];
+  if (!src) return null;
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < d.data.length; i += 4) {
+        const r = d.data[i], g = d.data[i+1], b = d.data[i+2];
+        // Remove near-black pixels (background)
+        if (r < 45 && g < 45 && b < 45) d.data[i+3] = 0;
+      }
+      ctx.putImageData(d, 0, 0);
+      const url = canvas.toDataURL('image/png');
+      logoCache[clientName] = url;
+      resolve(url);
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+// Preload all logos on app start
+async function preloadLogos() {
+  for (const name of Object.keys(LOGOS)) {
+    await preprocessLogo(name);
+  }
+}
+
 function getLogo(clientName, isDark, color, sz) {
-  const logoUrl = LOGOS[clientName];
+  const logoUrl = logoCache[clientName] || LOGOS[clientName];
   if (logoUrl) {
-    const blendMode = isDark ? 'screen' : 'multiply';
-    const h = Math.round(sz * 0.062);
-    return `<img src="${logoUrl}" style="height:${h}px;object-fit:contain;mix-blend-mode:${blendMode};opacity:0.95" alt="${clientName}">`;
+    const h = Math.round(sz * 0.065);
+    // Use preprocessed URL (black removed) — works with html2canvas
+    return `<img src="${logoUrl}" style="height:${h}px;max-width:${Math.round(sz*.45)}px;object-fit:contain;opacity:0.95" alt="${clientName}" crossorigin="anonymous">`;
   }
   // Fallback siglas
   const kit = KITS[clientName] || {};
@@ -955,7 +1013,6 @@ function renderSlide(row, sz = 500) {
         ${T?`<div style="font-size:${p(.021)}px;font-weight:700;background:${C};color:#fff;padding:6px 14px;border-radius:20px;white-space:nowrap">${T}</div>`:''}
       </div>
     </div>
-    <div style="position:absolute;top:${p(.036)}px;right:${p(.036)}px;font-size:${p(.023)}px;font-weight:700;color:${isDark?'rgba(255,255,255,.12)':'rgba(0,0,0,.1)'};z-index:4">${numStr}</div>
   </div>`;
 
   if (layout === 'split') return `<div style="width:${sz}px;height:${sz}px;display:grid;grid-template-columns:1fr 1fr;font-family:Outfit,sans-serif;overflow:hidden">
@@ -990,7 +1047,6 @@ function renderSlide(row, sz = 500) {
         ${T?`<span style="font-size:${p(.02)}px;font-weight:700;color:${C}">${T}</span>`:''}
       </div>
     </div>
-    <div style="position:absolute;top:${p(.036)}px;right:${p(.036)}px;font-size:${p(.022)}px;font-weight:700;color:${isDark?'rgba(255,255,255,.1)':'rgba(0,0,0,.08)'};z-index:3">${numStr}</div>
   </div>`;
 }
 // ══════════════════════════════════════════════════════════════
@@ -1095,6 +1151,8 @@ async function downloadSelected() { const sel = rows.filter(r => r.selected); if
 async function downloadZip() { if (!rows.length) return; await exportSlides(rows, true); }
 
 async function exportSlides(list, zip) {
+  // Ensure logos are preprocessed before export
+  await preloadLogos();
   toast(`Generando ${list.length} imagen${list.length>1?'es':''}…`);
   const jsz = zip ? new JSZip() : null;
   const folder = jsz ? jsz.folder('carousel_arim') : null;
@@ -1120,7 +1178,10 @@ async function exportSlides(list, zip) {
     toast('Comprimiendo ZIP…');
     const blob = await jsz.generateAsync({ type:'blob' });
     const a = document.createElement('a');
-    a.download = `carousel_${(activeClient||'arim').replace(/\s/g,'_')}_${Date.now()}.zip`;
+    const firstRow = list[0];
+    const carName = firstRow.carrusel_id ? `${firstRow.carrusel_id}_` : '';
+    const clientSlug = (firstRow.cliente||activeClient||'arim').replace(/\s/g,'_');
+    a.download = `${clientSlug}_${carName}carrusel_${Date.now()}.zip`;
     a.href = URL.createObjectURL(blob);
     a.click();
     toast(`✓ ZIP con ${list.length} slides descargado`);
