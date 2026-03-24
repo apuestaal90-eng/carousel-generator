@@ -300,7 +300,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-h
 // ════════════════════════════════════════
 // UNSPLASH KEY (hardcoded)
 // ════════════════════════════════════════
-const UKEY = 'DDVcopQc4pXHGRt_wyVdI11_fV2ElUMG62h0hXNXcX4';
+const UKEY = 'DDVcopQc4pXHGRt_wyVdI11_fV2ElUMG62h0hXNXcX4'; // Unsplash (backup)
+const PXKEY = '55144510-5d6bd19090c3e7bf922b43777'; // Pixabay (primary)
 
 // ════════════════════════════════════════
 // LOGOS (base64, black bg removed at runtime)
@@ -418,6 +419,7 @@ let generating = false;
 window.onload = () => {
   buildSplash();
   document.getElementById('bd-key').style.display = 'inline';
+  document.getElementById('bd-key').textContent = 'Pixabay ✓';
   setupDrop();
 };
 
@@ -706,48 +708,113 @@ function setView(v) {
 // ════════════════════════════════════════
 // UNSPLASH — no-repeat
 // ════════════════════════════════════════
-function buildKeyword(row) {
+function buildPixabayQuery(row) {
   const kit = KITS[row.cliente] || KITS[client] || Object.values(KITS)[0];
   const g = (row.gancho||'').toLowerCase();
   const d = (row.desarrollo||'').toLowerCase();
-  const variants = ['morning','aerial','interior','detail','wide','lifestyle','minimal','dramatic'];
+
+  // Variation per slide to avoid repeats
+  const variants = ['architecture','interior','aerial','urban','modern','luxury','minimal','landscape'];
   const variant = variants[(row.id||0) % variants.length];
 
-  // Try desarrollo-specific keyword first
-  if (row.desarrollo && kit.cats && kit.cats[row.desarrollo]) return kit.cats[row.desarrollo] + ' ' + variant;
+  // Desarrollo-specific
+  if (row.desarrollo && kit.cats && kit.cats[row.desarrollo])
+    return kit.cats[row.desarrollo] + ' ' + variant;
 
-  // Context from gancho
-  if (g.includes('cetes')||g.includes('bolsa')||g.includes('instrumento')) return 'finance investment data chart comparison ' + variant;
-  if (g.includes('checklist')||g.includes('preguntas')||g.includes('pasos')) return 'business professional planning checklist ' + variant;
-  if (g.includes('historia')||g.includes('inversionista que')) return 'entrepreneur business meeting handshake ' + variant;
-  if (g.includes('preventa')||g.includes('plusvalía')||g.includes('diferencial')) return 'real estate investment property luxury ' + variant;
-  if (g.includes('%')||g.includes('absorción')||g.includes('dato')||g.includes('número')) return 'real estate market data analysis growth ' + variant;
-  if (g.includes('treeview')||d.includes('treeview')) return 'modern residential green nature forest ' + variant;
-  if (g.includes('signature')||d.includes('signature')) return 'luxury penthouse premium interior design ' + variant;
-  if (g.includes('brio')||d.includes('brio')) return 'contemporary architecture residential ' + variant;
-  if (g.includes('valle')||d.includes('valle')) return 'urban city architecture guadalajara ' + variant;
-  if (g.includes('dolor')||g.includes('columna')||g.includes('fisio')) return 'physiotherapy treatment wellness ' + variant;
-  if (g.includes('viaje')||g.includes('destino')||g.includes('hotel')) return 'luxury travel destination scenic ' + variant;
-  return ((kit.cats&&kit.cats['default'])||'professional modern architecture') + ' ' + variant;
+  // Context from gancho text
+  if (g.includes('cetes')||g.includes('bolsa')||g.includes('instrumento'))
+    return 'finance investment business ' + variant;
+  if (g.includes('checklist')||g.includes('preguntas')||g.includes('pasos'))
+    return 'business professional planning ' + variant;
+  if (g.includes('historia')||g.includes('inversionista que'))
+    return 'business meeting entrepreneur ' + variant;
+  if (g.includes('preventa')||g.includes('plusvalía')||g.includes('diferencial'))
+    return 'real estate luxury property ' + variant;
+  if (g.includes('%')||g.includes('absorción')||g.includes('dato'))
+    return 'real estate market city ' + variant;
+  if (g.includes('treeview')||d.includes('treeview'))
+    return 'modern residential green architecture ' + variant;
+  if (g.includes('signature')||d.includes('signature'))
+    return 'luxury penthouse premium interior ' + variant;
+  if (g.includes('brio')||d.includes('brio'))
+    return 'contemporary residential building ' + variant;
+  if (g.includes('valle')||d.includes('valle'))
+    return 'urban city guadalajara architecture ' + variant;
+  if (g.includes('dolor')||g.includes('columna')||g.includes('fisio'))
+    return 'physiotherapy wellness health clinic ' + variant;
+  if (g.includes('viaje')||g.includes('destino')||g.includes('hotel'))
+    return 'luxury travel destination ' + variant;
+  if (g.includes('patrimonio')||g.includes('tangible'))
+    return 'real estate investment property ' + variant;
+
+  return ((kit.cats&&kit.cats['default'])||'architecture modern') + ' ' + variant;
 }
 
 async function fetchImg(row) {
-  const kw = buildKeyword(row);
-  for (let t = 0; t < 4; t++) {
-    try {
-      const r = await fetch(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(kw)}&orientation=squarish&client_id=${UKEY}`);
-      if (!r.ok) return null;
-      const d = await r.json();
-      const url = d.urls?.regular;
-      if (url && !usedUrls.has(url)) { usedUrls.add(url); return url; }
-    } catch(e) { return null; }
+  if (!PXKEY) return null;
+
+  const q = buildPixabayQuery(row);
+  const page = Math.floor((row.id||0) / 20) + 1; // Different page per batch of 20
+
+  try {
+    const url = `https://pixabay.com/api/?key=${PXKEY}&q=${encodeURIComponent(q)}&image_type=photo&orientation=horizontal&per_page=20&page=${page}&safesearch=true&min_width=800&order=latest`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      if (res.status === 400 || res.status === 403) {
+        toast('Clave Pixabay inválida — revisa tu API key', 'er');
+      }
+      return null;
+    }
+    const data = await res.json();
+    if (!data.hits || !data.hits.length) return null;
+
+    // Pick image at position based on row.id to vary within results
+    const pick = (row.id||0) % data.hits.length;
+    const hit = data.hits[pick];
+    const imgUrl = hit.largeImageURL || hit.webformatURL;
+
+    if (imgUrl && !usedUrls.has(imgUrl)) {
+      usedUrls.add(imgUrl);
+      return imgUrl;
+    }
+    // Try next one
+    for (let i = 0; i < data.hits.length; i++) {
+      const u = data.hits[i].largeImageURL || data.hits[i].webformatURL;
+      if (u && !usedUrls.has(u)) { usedUrls.add(u); return u; }
+    }
+    return null;
+  } catch(e) {
+    console.warn('Pixabay error:', e);
+    return null;
   }
-  return null;
 }
 
 async function blobify(url) {
-  try { const r = await fetch(url); const b = await r.blob(); return URL.createObjectURL(b); }
-  catch(e) { return url; }
+  try {
+    const r = await fetch(url, { mode: 'cors' });
+    if (!r.ok) return url;
+    const b = await r.blob();
+    return URL.createObjectURL(b);
+  }
+  catch(e) {
+    // If CORS fails, return URL directly (works for preview, may fail in export)
+    return url;
+  }
+}
+
+// For export: convert any image URL to base64 data URL
+async function toDataUrl(url) {
+  try {
+    const r = await fetch(url, { mode: 'cors' });
+    if (!r.ok) return null;
+    const b = await r.blob();
+    return new Promise(res => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result);
+      reader.onerror = () => res(null);
+      reader.readAsDataURL(b);
+    });
+  } catch(e) { return null; }
 }
 
 // ════════════════════════════════════════
@@ -839,9 +906,9 @@ function renderSlide(row, sz) {
 
   // Logo — use cached processed URL
   const logoUrl = LOGO_CACHE[row.cliente] || LOGO_CACHE[client];
-  const logoH = p(0.115);
+  const logoH = p(0.16);
   const logoHtml = logoUrl
-    ? `<img src="${logoUrl}" style="height:${logoH}px;max-width:${p(0.55)}px;object-fit:contain;display:block" crossorigin="anonymous">`
+    ? `<img src="${logoUrl}" style="height:${logoH}px;max-width:${p(0.65)}px;object-fit:contain;display:block" crossorigin="anonymous">`
     : `<div style="height:${p(0.065)}px;min-width:${p(0.065)}px;background:${C};border-radius:${p(0.014)}px;display:flex;align-items:center;justify-content:center;font-size:${p(0.022)}px;font-weight:900;color:#fff;font-family:Outfit,sans-serif;padding:0 ${p(0.016)}px">${kit.siglas}</div>`;
 
   // ── ÁVILA HERRERA — luxury real estate brand ──────────────
@@ -1082,7 +1149,13 @@ async function exportSlides(list, useZip) {
 
   for (let i = 0; i < list.length; i++) {
     const row = list[i];
-    wrap.innerHTML = renderSlide(row, 1000);
+    // Pre-convert bgUrl to data URL for reliable html2canvas rendering
+    const exportRow = {...row};
+    if (exportRow.bgUrl) {
+      const dataUrl = await toDataUrl(exportRow.bgUrl);
+      if (dataUrl) exportRow.bgUrl = dataUrl;
+    }
+    wrap.innerHTML = renderSlide(exportRow, 1000);
     await new Promise(r => setTimeout(r, 150));
     try {
       const c = await html2canvas(wrap.firstElementChild, {
