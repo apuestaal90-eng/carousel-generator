@@ -275,178 +275,94 @@ const LOGO_SRC = {
   "AU Studio": "data:image/png;base64,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",
 };
 
-const IMG_POOL = {
-  'real_estate': [
-    'https://cdn.pixabay.com/photo/2016/11/18/17/46/architecture-1836070_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/08/02/01/01/living-room-2569325_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/11/29/03/53/apartment-1867187_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/09/09/18/25/living-room-2732939_1280.jpg',
-    'https://cdn.pixabay.com/photo/2014/12/27/14/37/living-room-581073_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/08/19/13/58/bed-4416515_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/03/22/17/39/kitchen-2165756_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/01/26/08/20/hotel-3107070_1280.jpg',
-  ],
-  'building': [
-    'https://cdn.pixabay.com/photo/2017/01/09/17/12/architecture-1965432_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/08/11/23/48/dreamstimefree_80512-1587699_1280.jpg',
-    'https://cdn.pixabay.com/photo/2015/01/28/23/35/building-615374_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/02/09/21/46/city-3143326_1280.jpg',
-    'https://cdn.pixabay.com/photo/2020/07/24/10/36/architecture-5433487_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/12/19/08/39/mobile-phone-1917737_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/08/06/22/01/apartment-2596107_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/11/07/20/48/apartment-4609431_1280.jpg',
-  ],
-  'construction': [
-    'https://cdn.pixabay.com/photo/2016/07/04/13/14/construction-1496226_1280.jpg',
-    'https://cdn.pixabay.com/photo/2015/12/09/17/12/construction-1085677_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/06/14/08/20/construction-2401781_1280.jpg',
-    'https://cdn.pixabay.com/photo/2014/09/22/08/52/site-456579_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/04/15/04/14/construction-1330248_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/07/26/10/56/building-2541269_1280.jpg',
-  ],
-  'business': [
-    'https://cdn.pixabay.com/photo/2015/01/08/18/29/entrepreneur-593358_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/08/10/08/47/laptop-2620118_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/07/31/11/44/laptop-2557576_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/11/27/21/42/stock-1863880_1280.jpg',
-    'https://cdn.pixabay.com/photo/2015/07/17/22/43/student-849825_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/07/14/16/27/pen-4337521_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/03/09/09/22/workplace-1245776_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/03/10/12/00/paper-3213924_1280.jpg',
-  ],
-  'finance': [
-    'https://cdn.pixabay.com/photo/2018/02/08/22/28/laptop-3140924_1280.jpg',
-    'https://cdn.pixabay.com/photo/2020/02/18/11/03/financial-4858797_1280.jpg',
-    'https://cdn.pixabay.com/photo/2015/08/20/00/13/money-897246_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/09/07/08/54/money-2724241_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/10/09/08/32/digital-marketing-1725340_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/01/25/17/35/stock-exchange-2009154_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/04/26/07/14/store-4156934_1280.jpg',
-  ],
-  'city': [
-    'https://cdn.pixabay.com/photo/2015/09/09/19/53/town-933500_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/12/10/17/40/budapest-3010313_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/01/14/23/12/nature-3082832_1280.jpg',
-    'https://cdn.pixabay.com/photo/2013/01/29/22/53/city-76538_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/05/24/16/48/mountains-1412683_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/11/09/01/49/froschperspektive-2931634_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/06/01/18/46/city-2364830_1280.jpg',
-  ],
-  'luxury': [
-    'https://cdn.pixabay.com/photo/2017/03/28/12/17/abnormals-2181916_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/10/18/21/22/table-1750224_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/04/07/21/52/interior-3299312_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/03/09/20/42/living-room-4044725_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/01/26/08/20/hotel-3107070_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/07/08/20/36/hotel-4325890_1280.jpg',
-  ],
-  'health': [
-    'https://cdn.pixabay.com/photo/2017/01/04/13/20/doctor-1953814_1280.jpg',
-    'https://cdn.pixabay.com/photo/2021/01/04/10/41/physiotherapy-5886884_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/09/07/11/37/physiotherapy-1649880_1280.jpg',
-    'https://cdn.pixabay.com/photo/2014/12/10/21/01/woman-563967_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/11/29/21/51/physiotherapy-3846597_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/06/05/12/31/yoga-4254791_1280.jpg',
-  ],
-  'travel': [
-    'https://cdn.pixabay.com/photo/2017/01/20/00/30/maldives-1993704_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/05/05/02/37/sunset-1373171_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/12/07/15/52/luxury-3862010_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/09/18/19/38/hotel-4486840_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/08/06/12/06/people-2592010_1280.jpg',
-    'https://cdn.pixabay.com/photo/2019/06/12/09/15/airport-4269603_1280.jpg',
-  ],
-};
 
-const CAT_MAP = [
-  ['7 preguntas', 'business'],
-  ['desarrollador tiene proyectos', 'construction'],
-  ['diferencial real', 'finance'],
-  ['infraestructura pública', 'city'],
-  ['respondes sí a los 7', 'business'],
-  ['18 meses evaluando', 'business'],
-  ['18 meses después', 'real_estate'],
-  ['CETES', 'finance'],
-  ['datos que no te cuentan', 'finance'],
-  ['comparativa que hace incómoda', 'finance'],
-  ['mercado premium de GDL', 'city'],
-  ['GDL no bajó', 'city'],
-  ['GDL nunca ha bajado', 'city'],
-  ['GDL premium', 'building'],
-  ['Diversificación de demanda', 'city'],
-  ['Infraestructura pública comprometida', 'city'],
-  ['Déficit habitacional', 'building'],
-  ['pregunta correcta no es cuándo', 'business'],
-  ['TreeView', 'real_estate'],
-  ['absorción en Q1', 'finance'],
-  ['Signature: ticket', 'luxury'],
-  ['Diferencial de entrada en preventa', 'real_estate'],
-  ['Desarrollador con historial', 'construction'],
-  ['etapa de preventa activa', 'real_estate'],
-  ['Signature genera lista', 'luxury'],
-  ['preventa a la plusvalía', 'building'],
-  ['Durante construcción', 'construction'],
-  ['A la entrega', 'real_estate'],
-  ['error más común: buscar certeza', 'business'],
-  ['Inventario mínimo histórico', 'building'],
-  ['Valle Imperial', 'building'],
-  ['inversionista más precavido', 'business'],
-  ['patrimonio tangible', 'real_estate'],
-  ['BRIO', 'building'],
-  ['Zona de demanda sostenida', 'building'],
-  ['Diferencial activo en preventa', 'real_estate'],
-  ['inversionistas institucionales', 'finance'],
-  ['tres criterios', 'business'],
-  ['3 pasos para no cometer', 'business'],
-  ['preventa', 'real_estate'],
-  ['plusvalía', 'building'],
-  ['inversionista', 'business'],
-  ['inmobiliario', 'building'],
-  ['fisioterapia', 'health'],
-  ['dolor', 'health'],
-  ['columna', 'health'],
-  ['viaje', 'travel'],
-  ['hotel', 'travel'],
-];
+// ── PEXELS VIA CF WORKER ─────────────────────────
+// ① Despliega el Worker en Cloudflare (ver README)
+// ② Reemplaza esta URL con la tuya
+const WORKER_URL = "https://carousel-images.austriaaudiovisual.workers.dev";
 
-const CLIENT_CAT = {
-  'Ávila Herrera': 'real_estate',
-  'Gana Salud': 'health',
-  'WTE': 'travel',
-  'Daniel Ávila': 'business',
-  'NEO RE': 'building',
-  'AU Studio': 'business',
-};
+const imageCache = new Map();
 
-function getCategory(row) {
-  const g = row.gancho || '';
-  const d = row.desarrollo || '';
-  const dLow = d.toLowerCase();
+function buildQuery(row) {
+  if (row.iq && row.iq.trim()) return row.iq.trim();
+  const text = ((row.gancho || '') + ' ' + (row.copy || '')).toLowerCase();
+  const dev  = (row.desarrollo || '').toLowerCase();
+  const clientName = row.cliente || client;
 
-  // 1. Desarrollo specific
-  if (dLow.includes('treeview'))  return 'real_estate';
-  if (dLow.includes('signature')) return 'luxury';
-  if (dLow.includes('brio'))      return 'building';
-  if (dLow.includes('valle'))     return 'building';
-  if (dLow.includes('parkway'))   return 'building';
-
-  // 2. Gancho fragment
-  for (const [frag, cat] of CAT_MAP) {
-    if (g.toLowerCase().includes(frag.toLowerCase())) return cat;
+  const devMap = {
+    'treeview':'modern residential building green architecture forest',
+    'tree view':'modern residential building green architecture forest',
+    'signature':'luxury penthouse interior design premium apartment',
+    'brio':'contemporary apartment building exterior modern',
+    'valle imperial':'luxury residential community exterior landscape',
+    'parkway':'luxury urban condominium modern architecture',
+    'lomas':'hillside luxury residence premium architecture',
+  };
+  for (const [k, q] of Object.entries(devMap)) {
+    if (dev.includes(k) || text.includes(k)) return q;
   }
 
-  // 3. Client default
-  const clientName = row.cliente || client;
-  return CLIENT_CAT[clientName] || 'real_estate';
+  const topics = [
+    [['cetes','rendimiento','plusval','inversión','inversion','portafolio'],'financial investment growth data chart'],
+    [['hipoteca','crédito','credito','financiamiento','banco','tasa de inter'],'mortgage bank contract signing office'],
+    [['preventa','pre-venta'],'luxury apartment modern construction premium'],
+    [['escritura','contrato','firma','notario'],'real estate contract document professional'],
+    [['construcción','construccion','obra','avance'],'construction crane building modern architecture'],
+    [['planos','arquitecto'],'architect blueprint design office'],
+    [['alberca','piscina'],'luxury swimming pool architecture aerial'],
+    [['gimnasio','gym','fitness'],'modern gym fitness equipment interior'],
+    [['lobby','recepción','recepcion','vestíbulo'],'luxury hotel lobby interior design'],
+    [['terraza','rooftop','azotea'],'rooftop terrace city view architecture'],
+    [['panorámica','panoramica','skyline'],'city skyline panoramic aerial view'],
+    [['amenidades'],'luxury amenities building pool modern'],
+    [['departamento','penthouse','suite'],'modern luxury apartment interior design'],
+    [['precio','patrimonio','valor'],'real estate value investment modern'],
+    [['dolor de espalda','espalda','dolor lumbar'],'physical therapy back pain treatment clinic'],
+    [['columna','postura','cervical'],'physiotherapy posture spine treatment professional'],
+    [['fisioterapia','fisioterapeuta'],'physiotherapy clinic professional treatment'],
+    [['ejercicio','rehabilitación','rehabilitacion'],'physical therapy exercise rehabilitation modern'],
+    [['lesión','lesion','articulación','rodilla','hombro'],'sports injury joint physiotherapy treatment'],
+    [['hotel','resort','hospedaje'],'luxury hotel resort architecture premium'],
+    [['viaje','destino','vacaciones'],'luxury travel destination aerial scenic'],
+    [['playa','caribe','beach'],'tropical beach luxury resort pool'],
+    [['negocio','empresa','emprendedor'],'modern business office professional team'],
+    [['estrategia','marketing','branding','marca personal'],'business strategy professional office modern'],
+    [['podcast','contenido','redes sociales'],'content creator studio microphone recording'],
+    [['video','producción audiovisual'],'video production studio camera professional'],
+  ];
+  for (const [kws, q] of topics) {
+    if (kws.some(k => text.includes(k))) return q;
+  }
+
+  const defaults = {
+    'Ávila Herrera':'luxury real estate modern architecture interior',
+    'Avila Herrera':'luxury real estate modern architecture interior',
+    'Gana Salud':'physiotherapy wellness health clinic professional',
+    'WTE':'luxury travel hotel destination scenic',
+    'Daniel Ávila':'business investment professional office modern',
+    'Daniel Avila':'business investment professional office modern',
+    'NEO RE':'modern architecture urban development premium',
+    'AU Studio':'creative studio video production camera',
+  };
+  return defaults[clientName] || 'modern professional architecture lifestyle';
 }
 
-function getPoolImage(row) {
-  const cat = getCategory(row);
-  const pool = IMG_POOL[cat] || IMG_POOL['real_estate'];
-  // Use row.id to pick different image per slide, cycling through pool
-  const idx = (row.id || 0) % pool.length;
-  return pool[idx];
+async function fetchFromWorker(query, seed) {
+  const cacheKey = query + '__' + (seed % 30);
+  if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
+  try {
+    const url = WORKER_URL + '?query=' + encodeURIComponent(query) + '&seed=' + (seed % 30);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Worker ' + res.status);
+    const data = await res.json();
+    if (data.dataUrl) {
+      imageCache.set(cacheKey, data.dataUrl);
+      return data.dataUrl;
+    }
+  } catch(e) { console.warn('fetchImage failed:', query, e.message); }
+  return null;
 }
+
 
 const LOGO_CACHE = {};
 async function getLogoUrl(name) {
@@ -797,30 +713,37 @@ async function genAll() {
   generating = true;
   await preloadLogos();
   document.getElementById("btn-gen").disabled = true;
-  document.getElementById("btn-gen").innerHTML = "<div class=\"sp\" style=\"width:13px;height:13px\"></div> Generando\u2026";
+  document.getElementById("btn-gen").innerHTML = "<div class=\"sp\" style=\"width:13px;height:13px\"></div> Buscando imágenes…";
   document.getElementById("psec").style.display = "block";
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     document.getElementById("pf").style.width = ((i+1)/rows.length*100)+"%";
-    document.getElementById("pt").textContent = (i+1)+"/"+rows.length+" \u00b7 "+row.gancho.substring(0,32);
-    if (!row.bgUrl) row.bgUrl = getImage(row);
+    document.getElementById("pt").textContent = (i+1)+"/"+rows.length+" · "+row.gancho.substring(0,32);
+    if (!row.bgUrl) {
+      if (bancoPhotos.length > 0) {
+        row.bgUrl = bancoPhotos[bancoIdx % bancoPhotos.length].url;
+        bancoIdx++;
+      } else {
+        row.bgUrl = await fetchFromWorker(buildQuery(row), row.id);
+      }
+    }
     row.sel = true;
     const card = document.getElementById("c-"+row.id);
     if (card) {
       const bg = card.querySelector(".ct-bg");
-      if (bg && row.bgUrl) bg.style.cssText = "background-image:url(\'"+row.bgUrl+"\');background-size:cover;background-position:center";
+      if (bg && row.bgUrl) bg.style.cssText = "background-image:url('"+row.bgUrl+"');background-size:cover;background-position:center";
       card.classList.add("sel");
     }
-    await new Promise(r => setTimeout(r, 10));
   }
   generating = false;
   document.getElementById("btn-gen").disabled = false;
-  document.getElementById("btn-gen").innerHTML = "\u26A1 Generar todos los slides";
+  document.getElementById("btn-gen").innerHTML = "⚡ Generar todos los slides";
   document.getElementById("btn-zip").disabled = false;
   document.getElementById("btn-sel").disabled = false;
   updDl(); renderGrid();
-  toast("\u2713 "+rows.length+" slides listos");
+  toast("✓ "+rows.length+" slides listos");
 }
+
 
 function renderSlide(row, sz) {
   sz = sz || 500;
@@ -1031,19 +954,20 @@ function setLay(l, el) {
   renderModal(); renderGrid();
 }
 
-function regenImg() {
+async function regenImg() {
   const row = rows[mIdx]; if (!row) return;
   if (bancoPhotos.length > 0) {
     bancoIdx++;
-    row.bgUrl = getImage(row);
+    row.bgUrl = bancoPhotos[bancoIdx % bancoPhotos.length].url;
   } else {
-    const cat = getCategory(row);
-    const pool = IMG_POOL[cat] || IMG_POOL["real_estate"];
-    const curIdx = pool.indexOf(row.bgUrl);
-    row.bgUrl = pool[(curIdx + 1) % pool.length];
+    const query = buildQuery(row);
+    const newSeed = ((row.id || 0) + Math.floor(Math.random() * 25) + 1) % 30;
+    toast('Buscando imagen…');
+    row.bgUrl = await fetchFromWorker(query, newSeed);
   }
   renderModal(); renderGrid();
 }
+
 
 // ── DOWNLOAD ──────────────────────────────────────
 async function toDataUrl(url) {
