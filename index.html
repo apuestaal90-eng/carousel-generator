@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Carousel Generator v3 — Sin límites</title>
+<title>Carousel Generator v4 — AU Studio</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
@@ -128,7 +128,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .overlay-current{font-size:11px;color:var(--ac);margin-bottom:10px;min-height:16px}
 
 /* RENDER CANVAS — hidden */
-#render-area{position:fixed;left:-9999px;top:0;width:1080px;pointer-events:none;z-index:-1}
+#render-area{position:fixed;left:-9999px;top:0;width:1080px;min-height:1920px;pointer-events:none;z-index:-1}
 
 /* TOAST */
 .toast{position:fixed;bottom:18px;right:18px;padding:11px 16px;border-radius:var(--r2);font-size:12px;font-weight:600;z-index:9999;animation:su .2s ease;max-width:320px}
@@ -148,7 +148,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 <div class="app">
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="logo">Carousel<span>.</span>Generator <span class="badge">v3</span> <span class="badge badge-free">SIN LÍMITES</span></div>
+  <div class="logo">Carousel<span>.</span>Generator <span class="badge">v4</span> <span class="badge badge-free">28 TEMPLATES</span></div>
   <div class="topbar-right">
     <button class="btn btn-s" style="font-size:11px" onclick="downloadSelected()">⬇ Sel.</button>
     <button class="btn btn-g" style="font-size:11px" onclick="downloadAll()">📦 ZIP</button>
@@ -238,7 +238,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 </div>
 
 <!-- HIDDEN RENDER AREA -->
-<div id="render-area"></div>
+<div id="render-area" style="position:fixed;left:-9999px;top:0;width:1080px;min-height:1920px;pointer-events:none;z-index:-1"></div>
 
 <script>
 // ── STATE ──────────────────────────────────────────────
@@ -264,7 +264,7 @@ function getLogo(cliente){
 function fs(txt,big,med,small){ var l=(txt||'').length; return l>45?small:l>28?med:big; }
 function smartPexels(raw,cliente){
   var q=(raw||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  var M=[['fisioterapia','physical therapy rehabilitation clinic'],['osteopatia','osteopathy manual therapy spine'],['espalda','back pain physical therapy spine'],['columna','spine health physiotherapy medical'],['cervical','neck pain therapy professional'],['lesion','sports injury recovery rehabilitation'],['puncion','acupuncture dry needling therapy'],['rodilla','knee therapy rehabilitation sports'],['hombro','shoulder therapy rehabilitation'],['dolor','pain management therapy wellness'],['rehabilitacion','rehabilitation clinic professional'],['deport','sports fitness athlete training'],['zapopan','luxury modern apartment guadalajara architecture'],['guadalajara','guadalajara mexico modern city'],['inmobiliaria','luxury real estate property modern'],['plusvalia','real estate investment property value'],['preventa','luxury apartment construction building'],['vivienda','modern residential apartment building'],['nearshoring','corporate business district modern'],['inversion','real estate investment financial'],['patrimonio','family home real estate investment'],['japon','Japan Tokyo Kyoto temple cherry blossom'],['santorini','Santorini Greece white blue sea caldera'],['irlanda','Ireland green cliffs Atlantic landscape'],['monaco','Monaco harbor yacht luxury Mediterranean'],['paris','Paris France Eiffel Tower luxury'],['italia','Italy Rome Florence architecture travel'],['grecia','Greece Mediterranean sea island travel'],['europa','Europe travel city architecture scenic'],['lujo','luxury travel exclusive resort hotel'],['bienestar','wellness spa retreat nature meditation'],['gastrono','gourmet food fine dining chef restaurant'],['crucero','luxury cruise ship ocean travel'],['familia','family luxury vacation resort travel'],['f1','Formula 1 racing motorsport circuit car']];
+  var M=[['fisioterapia','physical therapy rehabilitation clinic'],['osteopatia','osteopathy manual therapy spine'],['espalda','back pain physical therapy spine'],['columna','spine health physiotherapy medical'],['cervical','neck pain therapy professional'],['lesion','sports injury recovery rehabilitation'],['puncion','acupuncture dry needling therapy'],['rodilla','knee therapy rehabilitation sports'],['hombro','shoulder therapy rehabilitation'],['dolor','pain management therapy wellness'],['rehabilitacion','rehabilitation clinic professional'],['deport','sports fitness athlete training'],['zapopan','luxury modern apartment guadalajara architecture'],['guadalajara','guadalajara mexico modern city'],['inmobiliaria','luxury real estate property modern'],['plusvalia','real estate investment property value'],['preventa','luxury apartment construction building'],['vivienda','modern residential apartment building'],['nearshoring','corporate business district modern'],['inversion','real estate investment financial'],['patrimonio','family home real estate investment'],['japon','Japan Tokyo Kyoto temple cherry blossom'],['santorini','Santorini Greece white blue sea caldera'],['irlanda','Ireland green cliffs Atlantic landscape'],['monaco','Monaco harbor yacht luxury Mediterranean'],['paris','Paris France Eiffel Tower luxury'],['italia','Italy Rome Florence architecture travel'],['grecia','Greece Mediterranean sea island travel'],['europa','Europe travel city architecture scenic'],['lujo','luxury travel exclusive resort hotel'],['bienestar','wellness spa retreat nature meditation'],['gastrono','gourmet food fine dining chef restaurant'],['crucero','luxury cruise ship ocean travel'],['familia','family luxury vacation resort travel'],['f1','Formula 1 racing motorsport circuit car'],['biomecanica','biomechanics movement analysis sports'],['terapia manual','manual therapy hands treatment professional'],['penthouse','penthouse luxury interior design modern'],['desarrollo','real estate development construction modern'],['lifestyle lujo','luxury lifestyle travel elegant'],['resort','luxury resort pool beach exclusive'],['playa','tropical beach paradise luxury resort'],['montana','mountain landscape luxury lodge scenic'],['crucero lujo','luxury cruise ship ocean deck'],['arquitectura','modern architecture luxury building facade']];
   for(var i=0;i<M.length;i++){if(q.includes(M[i][0]))return M[i][1];}
   var cli=normCli(cliente);
   if(cli==='Avila Herrera') return 'luxury real estate modern architecture mexico';
@@ -449,14 +449,326 @@ const TEMPLATES = {
       +'</div>'
       +'</div>';
   },
+
+  // ── ÁVILA HERRERA — NUEVOS (v4) ──────────────────────────────────────
+  'ah-editorial': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'80px','66px','54px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:Georgia,serif;overflow:hidden">'
+      +(img?'<img src="'+img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'<div style="position:absolute;inset:0;background:#0D1E28"></div>')
+      +'<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(13,30,40,.22) 0%,rgba(13,30,40,.7) 45%,rgba(13,30,40,.96) 100%)"></div>'
+      +'<div style="position:absolute;top:22px;right:36px"><img src="'+logo+'" style="height:58px;width:auto;object-fit:contain;filter:brightness(0) invert(1)"/></div>'
+      +'<div style="position:absolute;left:54px;right:54px;bottom:60px">'
+        +'<div style="width:54px;height:1.5px;background:#C49A45;margin-bottom:20px"></div>'
+        +'<div style="font-size:'+fz+';font-weight:400;color:#F4F0E8;line-height:1.04;margin-bottom:28px;letter-spacing:-1px">'+t+'</div>'
+        +'<div style="width:100%;height:1px;background:rgba(196,154,69,.38);margin-bottom:22px"></div>'
+        +'<div style="font-size:24px;color:rgba(244,240,232,.72);line-height:1.55;margin-bottom:36px;max-height:175px;overflow:hidden">'+s+'</div>'
+        +'<div style="font-size:16px;color:#C49A45;font-weight:700;letter-spacing:2px;text-transform:uppercase">'+c+' \u203a</div>'
+      +'</div>'
+      +'</div>';
+  },
+  'ah-split2': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'54px','44px','36px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:Georgia,serif;overflow:hidden;display:flex">'
+      +'<div style="width:440px;background:#0D1E28;display:flex;flex-direction:column;justify-content:center;padding:54px 42px;flex-shrink:0;position:relative">'
+        +'<div style="margin-bottom:48px"><img src="'+logo+'" style="height:60px;width:auto;object-fit:contain;filter:brightness(0) invert(1)"/></div>'
+        +'<div style="font-size:'+fz+';font-weight:700;color:#F4F0E8;line-height:1.05;margin-bottom:20px">'+t+'</div>'
+        +'<div style="width:42px;height:2px;background:#C49A45;margin-bottom:18px"></div>'
+        +'<div style="font-size:20px;color:#C8BFB0;line-height:1.6;margin-bottom:38px;max-height:200px;overflow:hidden">'+s+'</div>'
+        +'<div style="display:inline-flex;align-items:center;background:#C49A45;color:#fff;padding:14px 26px;border-radius:50px;font-size:16px;font-weight:800;letter-spacing:1px">'+c+'</div>'
+      +'</div>'
+      +'<div style="flex:1;position:relative">'
+        +(img?'<img src="'+img+'" style="width:100%;height:100%;object-fit:cover"/>':'<div style="width:100%;height:100%;background:linear-gradient(135deg,#2a3a4a,#3a5060)"></div>')
+        +'<div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(13,30,40,.38) 0%,transparent 45%)"></div>'
+      +'</div>'
+      +'</div>';
+  },
+  'ah-educativo': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'66px','54px','44px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:Georgia,serif;overflow:hidden;background:#0D1E28">'
+      +(img?'<img src="'+img+'" style="position:absolute;right:0;top:0;width:52%;height:100%;object-fit:cover;opacity:.3"/>':'')
+      +'<div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(13,30,40,.98) 38%,transparent 75%)"></div>'
+      +'<div style="position:absolute;left:54px;right:54px;top:80px"><img src="'+logo+'" style="height:56px;width:auto;object-fit:contain;filter:brightness(0) invert(1)"/></div>'
+      +'<div style="position:absolute;left:54px;right:56%;top:220px">'
+        +'<div style="font-size:11px;font-weight:800;color:#C49A45;letter-spacing:4px;text-transform:uppercase;margin-bottom:18px">CONCEPTOS CLAVE</div>'
+        +'<div style="font-size:'+fz+';font-style:italic;font-weight:400;color:#F4F0E8;line-height:1.07;margin-bottom:24px">'+t+'</div>'
+        +'<div style="font-size:20px;color:#C8BFB0;line-height:1.6;max-height:240px;overflow:hidden;margin-bottom:40px">'+s+'</div>'
+      +'</div>'
+      +'<div style="position:absolute;left:54px;bottom:90px;display:inline-flex;align-items:center;gap:10px;background:#C49A45;color:#fff;padding:15px 30px;font-size:16px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">'+c+' &rarr;</div>'
+      +'</div>';
+  },
+  'ah-historia-resort': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||'';
+    return '<div style="width:1080px;height:1920px;position:relative;font-family:Georgia,serif;overflow:hidden;background:#0D1E28">'
+      +(img?'<img src="'+img+'" style="position:absolute;top:0;left:0;width:100%;height:740px;object-fit:cover"/>':'<div style="position:absolute;top:0;left:0;width:100%;height:740px;background:linear-gradient(135deg,#1a2a3a,#2a4060)"></div>')
+      +'<div style="position:absolute;top:0;left:0;right:0;height:740px;background:linear-gradient(to bottom,transparent 50%,#0D1E28 100%)"></div>'
+      +'<div style="position:absolute;top:30px;left:40px"><img src="'+logo+'" style="height:64px;width:auto;object-fit:contain;filter:brightness(0) invert(1)"/></div>'
+      +'<div style="position:absolute;top:750px;left:54px;right:54px;text-align:center;padding:60px 40px">'
+        +'<div style="width:54px;height:1.5px;background:#C49A45;margin:0 auto 24px"></div>'
+        +'<div style="font-size:62px;font-weight:400;color:#F4F0E8;line-height:1.06;margin-bottom:20px">'+t+'</div>'
+        +'<div style="font-size:24px;color:#C8BFB0;line-height:1.6;margin-bottom:36px;max-height:180px;overflow:hidden">'+s+'</div>'
+        +'<div style="display:inline-flex;align-items:center;gap:8px;background:#C49A45;color:#fff;padding:15px 32px;font-size:18px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">'+c+'</div>'
+      +'</div>'
+      +'<div style="position:absolute;bottom:60px;left:54px;right:54px;display:flex;gap:16px">'
+        +(img?'<img src="'+img+'" style="flex:1;height:260px;object-fit:cover;border:2px solid rgba(196,154,69,.4)"/>':'<div style="flex:1;height:260px;background:#1a2a3a;border:2px solid rgba(196,154,69,.4)"></div>')
+        +(img?'<img src="'+img+'" style="flex:1;height:260px;object-fit:cover;object-position:center 70%;border:2px solid rgba(196,154,69,.4)"/>':'<div style="flex:1;height:260px;background:#1a2a3a;border:2px solid rgba(196,154,69,.4)"></div>')
+      +'</div>'
+      +'</div>';
+  },
+  'ah-historia-minimal': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||'';
+    return '<div style="width:1080px;height:1920px;position:relative;font-family:Georgia,serif;overflow:hidden">'
+      +(img?'<img src="'+img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'<div style="position:absolute;inset:0;background:linear-gradient(135deg,#1a2a3a,#0D1E28)"></div>')
+      +'<div style="position:absolute;inset:0;background:rgba(13,30,40,.58)"></div>'
+      +'<div style="position:absolute;top:30px;left:40px"><img src="'+logo+'" style="height:60px;width:auto;object-fit:contain;filter:brightness(0) invert(1)"/></div>'
+      +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px 80px">'
+        +'<div style="font-size:86px;font-weight:400;color:#F4F0E8;line-height:1.0;margin-bottom:28px;letter-spacing:-2px">'+t+'</div>'
+        +'<div style="width:60px;height:1.5px;background:#C49A45;margin-bottom:24px"></div>'
+        +'<div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:50px">'
+          +'<span style="background:rgba(196,154,69,.22);border:1px solid rgba(196,154,69,.55);color:#C49A45;padding:8px 20px;font-size:14px;letter-spacing:2px;text-transform:uppercase">LUXURY</span>'
+          +'<span style="background:rgba(196,154,69,.22);border:1px solid rgba(196,154,69,.55);color:#C49A45;padding:8px 20px;font-size:14px;letter-spacing:2px;text-transform:uppercase">INVERSION</span>'
+          +'<span style="background:rgba(196,154,69,.22);border:1px solid rgba(196,154,69,.55);color:#C49A45;padding:8px 20px;font-size:14px;letter-spacing:2px;text-transform:uppercase">ZAPOPAN</span>'
+        +'</div>'
+        +'<div style="font-size:24px;color:rgba(244,240,232,.75);line-height:1.6;max-height:180px;overflow:hidden">'+s+'</div>'
+      +'</div>'
+      +'<div style="position:absolute;bottom:70px;left:0;right:0;text-align:center;font-size:18px;color:#C49A45;font-weight:700;letter-spacing:2px;text-transform:uppercase">'+c+' \u203a</div>'
+      +'</div>';
+  },
+  // ── GANA SALUD — NUEVOS (v4) ─────────────────────────────────────────
+  'gs-pregunta': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'62px','52px','42px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:\'Helvetica Neue\',Arial,sans-serif;overflow:hidden;background:#F1F8E9">'
+      +'<div style="position:absolute;left:0;top:0;bottom:0;width:520px;display:flex;flex-direction:column;justify-content:center;padding:60px 50px;z-index:2">'
+        +'<div style="margin-bottom:38px"><img src="'+logo+'" style="height:60px;width:auto;object-fit:contain"/></div>'
+        +'<div style="font-size:'+fz+';font-weight:900;color:#1B5E20;line-height:1.05;margin-bottom:18px">'+t+'</div>'
+        +'<div style="width:52px;height:4px;background:#2E7D32;border-radius:2px;margin-bottom:18px"></div>'
+        +'<div style="font-size:22px;color:#2E7D32;line-height:1.6;margin-bottom:34px;max-height:195px;overflow:hidden">'+s+'</div>'
+        +'<div style="font-size:14px;color:rgba(46,125,50,.6);font-weight:700;letter-spacing:1.5px;text-transform:uppercase">ganasalud.mx</div>'
+      +'</div>'
+      +'<div style="position:absolute;right:0;top:0;bottom:0;width:580px;overflow:hidden">'
+        +(img?'<img src="'+img+'" style="width:100%;height:50%;object-fit:cover;border-bottom:4px solid #fff"/>':'<div style="width:100%;height:50%;background:#C8E6C9;border-bottom:4px solid #fff"></div>')
+        +(img?'<img src="'+img+'" style="width:100%;height:50%;object-fit:cover;object-position:center 70%"/>':'<div style="width:100%;height:50%;background:#A5D6A7"></div>')
+        +'<div style="position:absolute;bottom:30px;left:20px;display:inline-flex;align-items:center;background:#2E7D32;color:#fff;padding:13px 26px;border-radius:50px;font-size:17px;font-weight:800">'+c+'</div>'
+      +'</div>'
+      +'</div>';
+  },
+  'gs-servicios': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'56px','46px','38px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:\'Helvetica Neue\',Arial,sans-serif;overflow:hidden;background:#fff">'
+      +(img?'<img src="'+img+'" style="position:absolute;left:0;top:0;width:430px;height:100%;object-fit:cover"/>':'<div style="position:absolute;left:0;top:0;width:430px;height:100%;background:#C8E6C9"></div>')
+      +'<div style="position:absolute;left:0;top:0;width:430px;height:100%;background:linear-gradient(to right,transparent 60%,#fff 100%)"></div>'
+      +'<svg style="position:absolute;left:350px;top:0;bottom:0;width:120px;height:100%" viewBox="0 0 120 1350" preserveAspectRatio="none"><path d="M80,0 Q0,675 80,1350 L120,1350 L120,0 Z" fill="#2E7D32"/></svg>'
+      +'<div style="position:absolute;right:0;top:0;width:560px;display:flex;flex-direction:column;justify-content:center;padding:60px 50px 60px 30px">'
+        +'<div style="margin-bottom:32px"><img src="'+logo+'" style="height:58px;width:auto;object-fit:contain"/></div>'
+        +'<div style="font-size:'+fz+';font-weight:900;color:#1B5E20;line-height:1.04;margin-bottom:22px">'+t+'</div>'
+        +'<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:30px">'
+          +'<div style="display:flex;align-items:center;gap:12px;font-size:18px;color:#2E7D32"><span style="color:#2E7D32;font-size:20px">&#10003;</span> Fisioterapia y rehabilitaci&#243;n</div>'
+          +'<div style="display:flex;align-items:center;gap:12px;font-size:18px;color:#2E7D32"><span style="color:#2E7D32;font-size:20px">&#10003;</span> Terapia manual avanzada</div>'
+          +'<div style="display:flex;align-items:center;gap:12px;font-size:18px;color:#2E7D32"><span style="color:#2E7D32;font-size:20px">&#10003;</span> Puntura seca</div>'
+          +'<div style="display:flex;align-items:center;gap:12px;font-size:18px;color:#2E7D32"><span style="color:#2E7D32;font-size:20px">&#10003;</span> Deporte y alto rendimiento</div>'
+          +'<div style="display:flex;align-items:center;gap:12px;font-size:18px;color:#2E7D32"><span style="color:#2E7D32;font-size:20px">&#10003;</span> Columna vertebral y postura</div>'
+        +'</div>'
+        +'<div style="font-size:18px;color:#555;margin-bottom:28px;max-height:100px;overflow:hidden">'+s+'</div>'
+        +'<div style="font-size:15px;color:#2E7D32;font-weight:700">&#128222; Guadalajara &#x2022; ganasalud.mx</div>'
+      +'</div>'
+      +'</div>';
+  },
+  'gs-agenda': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'58px','48px','40px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:\'Helvetica Neue\',Arial,sans-serif;overflow:hidden;background:#fff">'
+      +(img?'<img src="'+img+'" style="position:absolute;right:0;top:0;width:480px;height:100%;object-fit:cover"/>':'<div style="position:absolute;right:0;top:0;width:480px;height:100%;background:#E8F5E9"></div>')
+      +'<div style="position:absolute;right:0;top:0;width:480px;height:100%;background:linear-gradient(to left,transparent 40%,#fff 100%)"></div>'
+      +'<div style="position:absolute;left:0;top:0;width:620px;display:flex;flex-direction:column;justify-content:center;padding:60px 52px 60px 54px">'
+        +'<div style="margin-bottom:36px"><img src="'+logo+'" style="height:58px;width:auto;object-fit:contain"/></div>'
+        +'<div style="font-size:'+fz+';font-weight:900;color:#1B5E20;line-height:1.04;margin-bottom:22px">'+t+'</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:30px">'
+          +'<div style="display:flex;align-items:center;gap:8px;font-size:16px;color:#2E7D32;background:#E8F5E9;padding:10px 14px;border-radius:6px"><span>&#10003;</span> Rodilla</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;font-size:16px;color:#2E7D32;background:#E8F5E9;padding:10px 14px;border-radius:6px"><span>&#10003;</span> Espalda</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;font-size:16px;color:#2E7D32;background:#E8F5E9;padding:10px 14px;border-radius:6px"><span>&#10003;</span> Hombro</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;font-size:16px;color:#2E7D32;background:#E8F5E9;padding:10px 14px;border-radius:6px"><span>&#10003;</span> Cervical</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;font-size:16px;color:#2E7D32;background:#E8F5E9;padding:10px 14px;border-radius:6px"><span>&#10003;</span> Cadera</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;font-size:16px;color:#2E7D32;background:#E8F5E9;padding:10px 14px;border-radius:6px"><span>&#10003;</span> Tobillo</div>'
+        +'</div>'
+        +'<div style="font-size:20px;color:#444;line-height:1.55;margin-bottom:36px;max-height:150px;overflow:hidden">'+s+'</div>'
+        +'<div style="display:inline-flex;align-items:center;gap:8px;background:#2E7D32;color:#fff;padding:16px 36px;border-radius:50px;font-size:19px;font-weight:900">'+c+'</div>'
+      +'</div>'
+      +'</div>';
+  },
+  'gs-bullets': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'60px','50px','42px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:\'Helvetica Neue\',Arial,sans-serif;overflow:hidden">'
+      +(img?'<img src="'+img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'<div style="position:absolute;inset:0;background:#1B5E20"></div>')
+      +'<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(27,94,32,.85) 0%,rgba(27,94,32,.95) 100%)"></div>'
+      +'<div style="position:absolute;top:30px;right:36px"><img src="'+logo+'" style="height:60px;width:auto;object-fit:contain"/></div>'
+      +'<div style="position:absolute;left:54px;right:54px;top:160px">'
+        +'<div style="font-size:'+fz+';font-weight:900;color:#fff;line-height:1.05;margin-bottom:14px">'+t+'</div>'
+        +'<div style="font-size:20px;color:rgba(255,255,255,.72);margin-bottom:36px;max-height:80px;overflow:hidden">'+s+'</div>'
+        +'<div style="display:flex;flex-direction:column;gap:16px">'
+          +'<div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:16px"><span style="font-size:26px">&#9989;</span><div style="font-size:20px;color:#fff;font-weight:700">El dolor no es normal &mdash; tiene soluci&#243;n</div></div>'
+          +'<div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:16px"><span style="font-size:26px">&#9989;</span><div style="font-size:20px;color:#fff;font-weight:700">Tratamos la causa, no solo el s&#237;ntoma</div></div>'
+          +'<div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:16px"><span style="font-size:26px">&#9989;</span><div style="font-size:20px;color:#fff;font-weight:700">Sin cirug&#237;a, sin pastillas, con resultados</div></div>'
+          +'<div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:16px"><span style="font-size:26px">&#9989;</span><div style="font-size:20px;color:#fff;font-weight:700">25 a&#241;os de experiencia en Guadalajara</div></div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="position:absolute;bottom:50px;left:54px;display:inline-flex;align-items:center;background:#fff;color:#2E7D32;padding:15px 34px;border-radius:50px;font-size:18px;font-weight:900">'+c+'</div>'
+      +'</div>';
+  },
+  'gs-clinica': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'56px','46px','38px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:\'Helvetica Neue\',Arial,sans-serif;overflow:hidden;background:#fff">'
+      +(img?'<img src="'+img+'" style="position:absolute;right:0;top:0;width:500px;height:680px;object-fit:cover"/>':'<div style="position:absolute;right:0;top:0;width:500px;height:680px;background:#C8E6C9"></div>')
+      +'<div style="position:absolute;right:0;top:0;width:500px;height:680px;background:linear-gradient(to left,transparent 44%,#fff 100%)"></div>'
+      +'<div style="position:absolute;top:30px;left:54px"><img src="'+logo+'" style="height:58px;width:auto;object-fit:contain"/></div>'
+      +'<div style="position:absolute;top:140px;left:54px;right:520px">'
+        +'<div style="font-size:'+fz+';font-weight:900;color:#1B5E20;line-height:1.04;margin-bottom:16px">'+t+'</div>'
+        +'<div style="font-size:18px;color:#444;margin-bottom:24px;max-height:90px;overflow:hidden">'+s+'</div>'
+      +'</div>'
+      +'<div style="position:absolute;top:640px;left:54px;right:54px">'
+        +'<div style="display:flex;gap:16px;margin-bottom:28px">'
+          +'<div style="flex:1;background:#E8F5E9;border-radius:10px;padding:20px;text-align:center">'
+            +'<div style="font-size:48px;font-weight:900;color:#2E7D32">85%</div>'
+            +'<div style="font-size:14px;color:#444;margin-top:4px">Eficacia en tratamientos</div>'
+          +'</div>'
+          +'<div style="flex:1;background:#E8F5E9;border-radius:10px;padding:20px;text-align:center">'
+            +'<div style="font-size:48px;font-weight:900;color:#2E7D32">25+</div>'
+            +'<div style="font-size:14px;color:#444;margin-top:4px">A&#241;os de experiencia</div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="background:#2E7D32;border-radius:10px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">'
+          +'<div style="font-size:20px;color:#fff;font-weight:800">&#127381; 50% primeras 3 consultas</div>'
+          +'<div style="font-size:12px;color:rgba(255,255,255,.7)">nuevos pacientes</div>'
+        +'</div>'
+        +'<div style="display:inline-flex;align-items:center;gap:8px;background:#2E7D32;color:#fff;padding:16px 36px;border-radius:50px;font-size:19px;font-weight:900">RESERVA TU CITA</div>'
+      +'</div>'
+      +'</div>';
+  },
+  'gs-historia-dark': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||'';
+    return '<div style="width:1080px;height:1920px;position:relative;font-family:\'Helvetica Neue\',Arial,sans-serif;overflow:hidden">'
+      +(img?'<img src="'+img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'<div style="position:absolute;inset:0;background:#0d1a0e"></div>')
+      +'<div style="position:absolute;inset:0;background:rgba(15,32,16,.78)"></div>'
+      +'<div style="position:absolute;top:50px;left:0;right:0;text-align:center"><img src="'+logo+'" style="height:72px;width:auto;object-fit:contain"/></div>'
+      +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:100px 70px">'
+        +'<div style="font-size:108px;font-weight:900;color:#fff;line-height:.88;margin-bottom:28px;text-transform:uppercase;letter-spacing:-3px">'+t+'</div>'
+        +'<div style="width:70px;height:4px;background:#2E7D32;border-radius:2px;margin-bottom:24px"></div>'
+        +'<div style="font-size:32px;font-weight:700;color:rgba(255,255,255,.88);letter-spacing:1px;text-transform:uppercase;margin-bottom:20px">'+c+'</div>'
+        +'<div style="font-size:22px;color:rgba(255,255,255,.65);line-height:1.6;max-height:180px;overflow:hidden">'+s+'</div>'
+      +'</div>'
+      +'<div style="position:absolute;bottom:80px;left:0;right:0;text-align:center">'
+        +'<div style="font-size:18px;color:rgba(255,255,255,.6);margin-bottom:6px">&#128197; Guadalajara, Jalisco</div>'
+        +'<div style="font-size:18px;color:#2E7D32;font-weight:700">ganasalud.mx</div>'
+      +'</div>'
+      +'</div>';
+  },
+  // ── WTE — NUEVOS (v4) ────────────────────────────────────────────────
+  'wte-travel': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||'';
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:Georgia,serif;overflow:hidden">'
+      +(img?'<img src="'+img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'<div style="position:absolute;inset:0;background:linear-gradient(135deg,#0A2540,#1a4060)"></div>')
+      +'<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,37,64,.3) 0%,rgba(10,37,64,.62) 100%)"></div>'
+      +'<div style="position:absolute;top:28px;left:40px"><img src="'+logo+'" style="height:58px;width:auto;object-fit:contain"/></div>'
+      +'<div style="position:absolute;left:44px;right:44px;bottom:60px">'
+        +'<div style="font-size:120px;font-weight:900;color:#fff;line-height:.85;letter-spacing:-4px;text-transform:uppercase;margin-bottom:22px;text-shadow:0 4px 40px rgba(0,0,0,.5)">TRAVEL</div>'
+        +'<div style="font-size:28px;color:rgba(255,255,255,.8);font-weight:300;margin-bottom:14px">'+t+'</div>'
+        +'<div style="width:68px;height:1.5px;background:#D4A843;margin-bottom:14px"></div>'
+        +'<div style="font-size:20px;color:rgba(255,255,255,.65);line-height:1.5;max-height:100px;overflow:hidden">'+s+'</div>'
+      +'</div>'
+      +'</div>';
+  },
+  'wte-quote': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||'';
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:Georgia,serif;overflow:hidden">'
+      +(img?'<img src="'+img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'<div style="position:absolute;inset:0;background:linear-gradient(135deg,#0A2540,#1a3050)"></div>')
+      +'<div style="position:absolute;inset:0;background:rgba(10,37,64,.44)"></div>'
+      +'<div style="position:absolute;top:24px;left:40px"><img src="'+logo+'" style="height:54px;width:auto;object-fit:contain"/></div>'
+      +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px 90px">'
+        +'<div style="font-size:96px;color:#D4A843;font-weight:400;line-height:.8;margin-bottom:20px">&#8220;</div>'
+        +'<div style="font-size:48px;font-style:italic;font-weight:400;color:#FAF8F5;line-height:1.2;margin-bottom:20px">'+t+'</div>'
+        +'<div style="font-size:96px;color:#D4A843;font-weight:400;line-height:.4;margin-bottom:34px">&#8221;</div>'
+        +'<div style="width:54px;height:1.5px;background:#D4A843;margin-bottom:20px"></div>'
+        +'<div style="font-size:18px;color:rgba(250,248,245,.65);letter-spacing:3px;text-transform:uppercase">'+s+'</div>'
+      +'</div>'
+      +'<div style="position:absolute;bottom:36px;left:0;right:0;text-align:center;font-size:16px;color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase">'+c+'</div>'
+      +'</div>';
+  },
+  'wte-destino2': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||''; var fz=fs(t,'88px','72px','58px');
+    return '<div style="width:1080px;height:1350px;position:relative;font-family:Georgia,serif;overflow:hidden">'
+      +(img?'<img src="'+img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'<div style="position:absolute;inset:0;background:#0A2540"></div>')
+      +'<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,37,64,.22) 0%,rgba(10,37,64,.88) 62%,rgba(10,37,64,.98) 100%)"></div>'
+      +'<div style="position:absolute;top:28px;left:40px"><img src="'+logo+'" style="height:56px;width:auto;object-fit:contain"/></div>'
+      +'<div style="position:absolute;left:54px;right:54px;bottom:56px">'
+        +'<div style="font-size:'+fz+';font-weight:400;color:#fff;line-height:1.0;margin-bottom:24px;letter-spacing:-2px">'+t+'</div>'
+        +'<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px">'
+          +'<span style="display:flex;align-items:center;gap:8px;background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.4);color:#D4A843;padding:8px 18px;font-size:14px;border-radius:4px">&#9992; Vuelo incluido</span>'
+          +'<span style="display:flex;align-items:center;gap:8px;background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.4);color:#D4A843;padding:8px 18px;font-size:14px;border-radius:4px">&#127968; Hotel</span>'
+          +'<span style="display:flex;align-items:center;gap:8px;background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.4);color:#D4A843;padding:8px 18px;font-size:14px;border-radius:4px">&#128506; Tour guiado</span>'
+        +'</div>'
+        +'<div style="font-size:22px;color:rgba(255,255,255,.65);font-weight:300;margin-bottom:32px;max-height:90px;overflow:hidden">'+s+'</div>'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(212,168,67,.22);padding-top:20px">'
+          +'<div style="font-size:15px;color:rgba(255,255,255,.5);letter-spacing:1px">worldtravelelite.mx</div>'
+          +'<div style="font-size:15px;color:#D4A843;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">'+c+' \u203a</div>'
+        +'</div>'
+      +'</div>'
+      +'</div>';
+  },
+  'wte-historia': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||'';
+    return '<div style="width:1080px;height:1920px;position:relative;font-family:Georgia,serif;overflow:hidden;background:#0A2540">'
+      +(img?'<img src="'+img+'" style="position:absolute;top:0;left:0;width:100%;height:780px;object-fit:cover"/>':'<div style="position:absolute;top:0;left:0;width:100%;height:780px;background:linear-gradient(135deg,#1a3a5c,#0A2540)"></div>')
+      +'<div style="position:absolute;top:0;left:0;right:0;height:780px;background:linear-gradient(to bottom,transparent 45%,#0A2540 100%)"></div>'
+      +'<div style="position:absolute;top:40px;left:0;right:0;text-align:center"><img src="'+logo+'" style="height:70px;width:auto;object-fit:contain"/></div>'
+      +'<div style="position:absolute;top:800px;left:60px;right:60px;text-align:center">'
+        +'<div style="font-size:72px;font-weight:400;color:#fff;line-height:1.0;margin-bottom:26px">'+t+'</div>'
+        +'<div style="display:flex;justify-content:center;gap:50px;margin-bottom:36px">'
+          +'<div style="text-align:center"><div style="font-size:40px">&#9992;</div><div style="font-size:14px;color:#D4A843;font-weight:700;letter-spacing:1px;margin-top:8px">VUELO</div></div>'
+          +'<div style="text-align:center"><div style="font-size:40px">&#127968;</div><div style="font-size:14px;color:#D4A843;font-weight:700;letter-spacing:1px;margin-top:8px">HOTEL</div></div>'
+          +'<div style="text-align:center"><div style="font-size:40px">&#128100;</div><div style="font-size:14px;color:#D4A843;font-weight:700;letter-spacing:1px;margin-top:8px">GU&#205;A</div></div>'
+        +'</div>'
+        +'<div style="font-size:26px;color:rgba(255,255,255,.72);line-height:1.6;margin-bottom:46px;max-height:200px;overflow:hidden;font-weight:300">'+s+'</div>'
+        +'<div style="display:inline-flex;align-items:center;gap:10px;background:#D4A843;color:#0A2540;padding:18px 44px;font-size:20px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border-radius:4px">'+c+'</div>'
+      +'</div>'
+      +'<div style="position:absolute;bottom:60px;left:0;right:0;text-align:center;font-size:16px;color:rgba(255,255,255,.4);letter-spacing:2px">worldtravelelite.mx</div>'
+      +'</div>';
+  },
+  'wte-burbuja': function(d,img,logo){
+    var t=d.title||d.gancho||''; var s=d.subtitle||d.copy||''; var c=d.cta||'';
+    return '<div style="width:1080px;height:1920px;position:relative;font-family:Georgia,serif;overflow:hidden">'
+      +(img?'<img src="'+img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'<div style="position:absolute;inset:0;background:linear-gradient(135deg,#0A2540,#1a4060)"></div>')
+      +'<div style="position:absolute;inset:0;background:rgba(10,37,64,.38)"></div>'
+      +'<div style="position:absolute;top:40px;left:0;right:0;text-align:center"><img src="'+logo+'" style="height:64px;width:auto;object-fit:contain"/></div>'
+      +'<div style="position:absolute;inset:0;display:flex;justify-content:center;align-items:center;padding:80px">'
+        +'<div style="background:rgba(10,37,64,.55);backdrop-filter:blur(12px);border:1px solid rgba(212,168,67,.35);border-radius:50%;width:820px;height:820px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px">'
+          +'<div style="font-size:13px;font-weight:700;color:#D4A843;letter-spacing:4px;text-transform:uppercase;margin-bottom:20px">&#10022; WORLD TRAVEL ELITE</div>'
+          +'<div style="font-size:54px;font-weight:400;color:#FAF8F5;line-height:1.08;margin-bottom:20px">'+t+'</div>'
+          +'<div style="width:54px;height:1.5px;background:#D4A843;margin-bottom:20px"></div>'
+          +'<div style="font-size:22px;color:rgba(250,248,245,.72);line-height:1.55;max-height:150px;overflow:hidden">'+s+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="position:absolute;bottom:60px;left:0;right:0;text-align:center;font-size:18px;color:rgba(255,255,255,.5);letter-spacing:2px">'+c+' \u203a</div>'
+      +'</div>';
+  },
 };
 // Layout rotation per client
 const CLIENT_LAYOUTS = {
-  'Avila Herrera':['ah-pizarra','ah-dorado','ah-minimal','ah-split'],
-  'Gana Salud':   ['gs-verde','gs-claro','gs-bold','gs-info'],
-  'WTE':          ['wte-navy','wte-inmersivo','wte-editorial','wte-destino'],
+  'Avila Herrera':['ah-pizarra','ah-dorado','ah-minimal','ah-split','ah-editorial','ah-split2','ah-educativo'],
+  'Gana Salud':   ['gs-verde','gs-claro','gs-bold','gs-info','gs-pregunta','gs-servicios','gs-agenda','gs-bullets','gs-clinica'],
+  'WTE':          ['wte-navy','wte-inmersivo','wte-editorial','wte-destino','wte-travel','wte-quote','wte-destino2'],
 };
 let layoutCounters = {};
+var HISTORIA_LAYOUTS={
+  'Avila Herrera':['ah-historia-resort','ah-historia-minimal'],
+  'Gana Salud':   ['gs-historia-dark'],
+  'WTE':          ['wte-historia','wte-burbuja'],
+};
+let historiaCounters={};
+function getHistoriaLayout(cliente){
+  var key=normCli(cliente);
+  var layouts=HISTORIA_LAYOUTS[key]||['wte-historia'];
+  if(!historiaCounters[key]) historiaCounters[key]=0;
+  var layout=layouts[historiaCounters[key]%layouts.length];
+  historiaCounters[key]++;
+  return layout;
+}
 function getLayout(cliente){
   var key = normCli(cliente);
   var layouts = CLIENT_LAYOUTS[key] || ['gs-verde','gs-claro','gs-bold','gs-info'];
@@ -505,7 +817,7 @@ function parseData(data){
     const cli=normCli(String(row[iCl]||'').trim());
     slides.push({
       id:i, fecha:String(row[iD]||''), dia:String(row[iDi]||''),
-      cliente:cli, formato:String(row[iF]||'POST').trim().toUpperCase().includes('CARRUSEL')?'CARRUSEL':'POST',
+      cliente:cli, formato:(function(f){var u=f.trim().toUpperCase();return u.includes('CARRUSEL')?'CARRUSEL':u.includes('HISTORIA')?'HISTORIA':'POST';})(String(row[iF]||'')),
       numSlides:parseInt(row[iN])||1, tema:String(row[iTe]||''),
       pexels:String(row[iPx]||''), hashtags:String(row[iH]||''),
       s1_gancho:String(row[iS1G]||''), s1_copy:String(row[iS1C]||''),
@@ -613,7 +925,8 @@ async function renderSlide(templateKey, data, imageUrl){
   const el=area.firstElementChild;
   await new Promise(r=>setTimeout(r,80));
   try{
-    const dataUrl=await htmlToImage.toPng(el,{width:1080,height:1350,pixelRatio:1,skipFonts:false});
+    var isHist=templateKey.includes('historia')||templateKey.includes('burbuja');var rH=isHist?1920:1350;
+    const dataUrl=await htmlToImage.toPng(el,{width:1080,height:rH,pixelRatio:1,skipFonts:false});
     area.innerHTML='';
     return dataUrl;
   }catch(e){
@@ -643,7 +956,9 @@ async function genOne(id){
     const totalSlides=s.formato==='CARRUSEL'?Math.min(s.numSlides,6):1;
     for(let i=0;i<totalSlides;i++){
       const data=buildSlideData(s,i);
-      const layoutKey=s.layout||getLayout(s.cliente);
+      var isHistoriaFmt=s.formato==='HISTORIA';
+      var preferHistoria=isHistoriaFmt&&!s.layout.includes('historia')&&!s.layout.includes('burbuja');
+      var layoutKey=preferHistoria?getHistoriaLayout(s.cliente):s.layout||getLayout(s.cliente);
       const dataUrl=await renderSlide(layoutKey,data,imgUrl);
       renders.push(dataUrl);
     }
@@ -677,7 +992,9 @@ async function runBatch(items){
       const totalSlides=s.formato==='CARRUSEL'?Math.min(s.numSlides,6):1;
       for(let i=0;i<totalSlides;i++){
         const data=buildSlideData(s,i);
-        const dataUrl=await renderSlide(s.layout,data,imgUrl);
+        var bIsHist=s.formato==='HISTORIA'&&!s.layout.includes('historia')&&!s.layout.includes('burbuja');
+      var bLayout=bIsHist?getHistoriaLayout(s.cliente):s.layout;
+      const dataUrl=await renderSlide(bLayout,data,imgUrl);
         renders.push(dataUrl);
       }
       s.renders=renders; s.status='LISTO'; s.error=null;
